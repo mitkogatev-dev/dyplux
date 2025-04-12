@@ -33,3 +33,16 @@ inc/
 /MANIFEST.bak
 /pm_to_blib
 /*.zip
+#Custom
+# Logs
+*.log
+# Temporary files
+*.tmp
+*~
+*.bak
+.txt
+*.txt
+.cfg
+*.cfg
+/debugger/
+/lib/
