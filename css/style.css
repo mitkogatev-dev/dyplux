@@ -1,0 +1,44 @@
+.hidden{
+    display: none;
+}
+body{
+    background-color: rgb(245, 224, 224);
+}
+#side input[type=submit]{
+    width: 90%;
+} 
+#mainframe{
+    /* background-color: rgb(152, 197, 197); */
+    background-color: rgb(245, 247, 247);
+}
+#side{
+    width:10%;
+    margin-right:10px;
+    float: left;
+    border: 2px solid red;
+}
+.frame {
+    width:82%;
+    float: left;
+    border: 2px solid red;
+}
+.clearfix{
+    clear:both
+}
+
+.graph{
+    display: inline-block;
+    width: 90%;
+   /* margin: 10px; */
+    /* width: 30%; */
+   /* width: 30%; */
+}
+.grside{
+  display: inline-block;
+  width: 10%;
+  vertical-align:top;
+}
+/* .grside > ul{
+    padding: 0;
+    margin: 0;
+} */
