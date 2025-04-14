@@ -20,16 +20,15 @@ my %sql_config = (
     sql_db => "graphs"
 );
 my %influx_config =(
-    influx_url => "http://127.0.0.1",
-    influx_port => "8086",
+    influx_url => "http://127.0.0.1:8086",
     influx_token => "InFluXtOkeN(or)Fake==",
     influx_bucket => "traffic",
     influx_query_method => "js" #curl || js
 );
 my %debug_config = (
-    debug_enabled => 1,
+    debug_enabled => 0,
     debug_file => "$dir/debug.log",
-    debug_cgi => 1
+    debug_cgi => 0
 );
 my %project = (
     author => "mitkogatev",

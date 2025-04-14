@@ -172,4 +172,4 @@ print qq(
     </body>
 );
 #DEBUG
-print    "<div><h3>DEBUG cgi</h3>".Dumper($cgi)."</div>";
+print    "<div><h3>DEBUG cgi</h3>".Dumper($cgi)."</div>" if $cfg->{debug_cgi};
