@@ -285,7 +285,7 @@ sub gen_dash_select{
 sub port_to_dashboard_form{
     my $port_id=shift;
     my $select=shift;
-    my $result=qq(<button type="button" port_id="$port_id" onclick="bau(this);">add to</button> $select);
+    my $result=qq(<button type="button" port_id="$port_id" onclick="addToDash(this);">add to</button> $select);
     return $result;
 }
 sub error{

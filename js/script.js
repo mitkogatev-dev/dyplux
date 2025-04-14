@@ -5,7 +5,7 @@ obj.style.height = obj.contentWindow.document.body.scrollHeight+200 + 'px';
 // obj.style.width = obj.contentWindow.document.body.scrollWidth + 'px';  
 // console.log(obj.contentWindow.document.body.scrollHeight);                                                                                                  
  }
- function bau(btn){
+ function addToDash(btn){
     // console.log(btn);
     let port_id=btn.getAttribute("port_id");
     let dashboard_id=btn.closest('td').querySelector('[name=dashboard_id]').value;
