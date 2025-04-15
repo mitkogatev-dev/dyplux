@@ -82,7 +82,7 @@ sub del_port{
     my $str="DELETE FROM `ports` WHERE `port_id`=?";
     return $str;
 }
-sub get_ports{
+sub device_ports{
     my $str="SELECT `port_id`,`device_id`,`ifindex`,`ifname`,`port_name` FROM `ports` WHERE device_id =?";
 }
 sub get_port_alerts{
@@ -94,14 +94,23 @@ sub get_port_alerts{
     my $str = "SELECT a.alert_id,a.port_id,a.dt,at.name FROM alerts a JOIN alert_types at ON a.alert_type_id=at.alert_type_id $where;";
     return $str;
 }
-sub get_port_data{
+sub port_data{
     my $port_id=shift || "";
     my $where="WHERE 1";
     if("" ne $port_id){
         $where="WHERE p.port_id = ?";
     }
-    my $str="SELECT p.`port_id`,p.`device_id`,p.`ifindex`,p.`ifname`,p.`port_name`,d.name,t.threshold_id,t.min_in,t.min_out,t.max_in,t.max_out FROM `ports` p JOIN devices d ON p.device_id=d.device_id LEFT JOIN thresholds t ON p.port_id=t.port_id $where;";
+    # my $str="SELECT p.`port_id`,p.`device_id`,p.`ifindex`,p.`ifname`,p.`port_name`,d.name,t.threshold_id,t.min_in,t.min_out,t.max_in,t.max_out FROM `ports` p JOIN devices d ON p.device_id=d.device_id LEFT JOIN thresholds t ON p.port_id=t.port_id $where;";
+    my $str="SELECT p.`port_id`,p.`device_id`,p.`ifindex`,p.`ifname`,p.`port_name`,d.name FROM `ports` p JOIN devices d ON p.device_id=d.device_id $where;";
     return $str;
+}
+sub port_thresholds{ #TODO!!!
+    # my $port_id=shift;
+    #my $str="SELECT t.port_id,t.threshold_id,t.min_in,t.min_out,t.max_in,t.max_out FROM thresholds t WHERE t.port_id=?";
+    my $str="SELECT p.`port_id`,p.`device_id`,p.`ifindex`,p.`ifname`,p.`port_name`,d.name,t.threshold_id,t.min_in,t.min_out,t.max_in,t.max_out FROM `ports` p JOIN devices d ON p.device_id=d.device_id LEFT JOIN thresholds t ON p.port_id=t.port_id WHERE p.port_id=?;";
+    
+    return $str;
+
 }
 sub update_port_threshold{
     my $str="INSERT INTO `thresholds`(`port_id`,`min_in`,`max_in`,`min_out`,`max_out`) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `min_in`=?,`max_in`=?,`min_out`=?,`max_out`=?";

@@ -146,7 +146,7 @@ sub get_ports{
 sub get_ports_db{
     my $dbh=init_db();
     my $device_id=$input->{device_id};
-    my $ports=$dbh->selectall_arrayref(Query::get_ports(),{Slice=>{}},$device_id); 
+    my $ports=$dbh->selectall_arrayref(Query::device_ports(),{Slice=>{}},$device_id); 
     $dbh->disconnect();
     # return Strings::add_port_form($ports);
     return $ports;
@@ -156,12 +156,18 @@ sub get_port_data{
     my $dbh=init_db();
     my $port;
     if($port_id){
-     $port=$dbh->selectall_arrayref(Query::get_port_data($port_id),{Slice=>{}},$port_id);
+     $port=$dbh->selectall_arrayref(Query::port_data($port_id),{Slice=>{}},$port_id);
     }else{
-     $port=$dbh->selectall_arrayref(Query::get_port_data(),{Slice=>{}},);
+     $port=$dbh->selectall_arrayref(Query::port_data(),{Slice=>{}},);
     }
     $dbh->disconnect();
     return $port;
+}
+sub get_port_thresholds{
+    my $port_id=shift;
+    my $dbh=init_db();
+    my $thresholds=$dbh->selectall_arrayref(Query::port_thresholds(),{Slice=>{}},$port_id);
+    return $thresholds;
 }
 sub get_alerts{
     my $port_id=shift;

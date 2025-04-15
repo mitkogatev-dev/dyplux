@@ -151,13 +151,16 @@ sub dygraph{
 }
 sub port_details{
     my $result;
-    my $port_id=shift;
-    my $ports=to_json(shift);
+    # my $port_id=shift;
+    # my $ports=to_json(shift);
+    my $ports=shift;
+    my $port_id=@$ports[0]->{port_id};
+    my $ports_json=to_json($ports);
     $result.="<h4>showing details for port $port_id todo</h4>";
     $result.="<div id='div_g'></div>";
     $result.=qq(<script>
     
-        drawGraph(["port",$port_id,$ports]);
+        drawGraph(["port",$port_id,$ports_json]);
             
             </script>
             
