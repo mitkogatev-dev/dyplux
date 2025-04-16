@@ -32,3 +32,6 @@ function printMsg(){
   document.getElementById("infobox").innerHTML="<h4>Loading graphs... please wait</h4>";
   return 1;
 }
+function selRow(input){
+  input.closest('tr').querySelector('[name=sel]').click();
+}

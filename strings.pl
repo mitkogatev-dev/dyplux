@@ -86,7 +86,7 @@ $result .= qq(
     <tr>
         <td><input type="checkbox" name="sel" value="$port->{$port_identifier}"></td>
         <td><input type="text" name="ifname[$port->{$port_identifier}]" value="$port->{ifname}"></td>
-        <td><input type="text" name="port_name[$port->{$port_identifier}]" value="$port_name"></td>
+        <td><input onfocus="selRow(this);" type="text" name="port_name[$port->{$port_identifier}]" value="$port_name"></td>
  
 );
 if($input->{edit_ports}){
