@@ -91,6 +91,8 @@ $result .= qq(
 );
 if($input->{edit_ports}){
     $result.="<td>".&port_to_dashboard_form($port->{port_id},$dashboard_select)."</td>";
+    #* todo fix css then enable
+    # $result.=qq(<form action="" method="post" target="_blank"><input type="hidden" name="port_id" value="$port->{port_id}"/><input type="submit" value="graph" name="single_graph"/></form></td>);
 }
 else {
     # $result.=qq(<td><input type="text" name="ifstate[$port->{$port_identifier}]" value="$port_state"></td>);
