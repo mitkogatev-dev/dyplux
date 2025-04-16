@@ -4,15 +4,10 @@ use Data::Dumper qw( Dumper );
 use FindBin 1.51 qw( $RealBin );
 use lib $RealBin;
 my $dir=$RealBin;
-#require "$dir/../../func.pl";
-#require "$dir/../encrypt.pl";
-#require "/var/www/htdocs/API/func.pl";
-# my $debugFile = '/var/www/htdocs/API/debug.log';
-# open (my $debug,">>", $debugFile) or die $!;
 
-#require "func.pl";
 package Query;
-# require "$dir/../func.pl";
+my $debug=Cfg::get_debug();
+
 sub add_device{
     my $str = "INSERT INTO `devices`(ip,name,community) VALUES(?, ?, ?)";
     return $str;
@@ -104,10 +99,14 @@ sub port_data{
     my $str="SELECT p.`port_id`,p.`device_id`,p.`ifindex`,p.`ifname`,p.`port_name`,d.name AS device_name FROM `ports` p JOIN devices d ON p.device_id=d.device_id $where;";
     return $str;
 }
-sub port_thresholds{ #TODO!!!
-    # my $port_id=shift;
+sub port_thresholds{ 
+    my $port_id=shift || "";
+    my $where="WHERE t.threshold_id IS NOT null";
+    if("" ne $port_id){
+        $where="WHERE p.port_id = ?";
+    }
     #my $str="SELECT t.port_id,t.threshold_id,t.min_in,t.min_out,t.max_in,t.max_out FROM thresholds t WHERE t.port_id=?";
-    my $str="SELECT p.`port_id`,p.`device_id`,p.`ifindex`,p.`ifname`,p.`port_name`,d.name,t.threshold_id,t.min_in,t.min_out,t.max_in,t.max_out FROM `ports` p JOIN devices d ON p.device_id=d.device_id LEFT JOIN thresholds t ON p.port_id=t.port_id WHERE p.port_id=?;";
+    my $str="SELECT p.`port_id`,p.`device_id`,p.`ifindex`,p.`ifname`,p.`port_name`,d.name,t.threshold_id,t.min_in,t.min_out,t.max_in,t.max_out FROM `ports` p JOIN devices d ON p.device_id=d.device_id LEFT JOIN thresholds t ON p.port_id=t.port_id $where;";
     
     return $str;
 

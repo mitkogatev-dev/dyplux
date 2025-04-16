@@ -166,7 +166,12 @@ sub get_port_data{
 sub get_port_thresholds{
     my $port_id=shift;
     my $dbh=init_db();
-    my $thresholds=$dbh->selectall_arrayref(Query::port_thresholds(),{Slice=>{}},$port_id);
+    my $thresholds;
+    if (!$port_id || "" eq $port_id){
+     $thresholds=$dbh->selectall_arrayref(Query::port_thresholds(),{Slice=>{}},);
+    }else{
+    $thresholds=$dbh->selectall_arrayref(Query::port_thresholds($port_id),{Slice=>{}},$port_id);
+    }
     return $thresholds;
 }
 sub get_alerts{
