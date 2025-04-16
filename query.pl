@@ -83,7 +83,7 @@ sub del_port{
     return $str;
 }
 sub device_ports{
-    my $str="SELECT `port_id`,`device_id`,`ifindex`,`ifname`,`port_name` FROM `ports` WHERE device_id =?";
+    my $str="SELECT p.`port_id`,p.`device_id`,p.`ifindex`,p.`ifname`,p.`port_name`,d.name AS device_name FROM `ports` p JOIN devices d ON p.device_id=d.device_id WHERE p.device_id =?";
 }
 sub get_port_alerts{
     my $port_id=shift || "";
