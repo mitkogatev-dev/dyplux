@@ -193,7 +193,7 @@ $graphjs.=q(
                 if(!currPort) continue;
             checkElem(idx);//create graph container if none
             $('#foo'+idx).html(`minIn: <b>${kmgFormat(minMax.minIn)} </b> maxIn: <b><span class='max'>${kmgFormat(minMax.maxIn)}</span></b> minOut: <b>${kmgFormat(minMax.minOut)}</b> maxOut: <b><span class='max'>${kmgFormat(minMax.maxOut)}</span></b>`);
-            let title=currPort.ifname+" -- "+currPort.port_name;
+            let title=currPort.device_name+" - "+currPort.ifname+" -- "+currPort.port_name;
     graphsArr.push(
         new Dygraph(
             document.getElementById(idx),
@@ -261,7 +261,7 @@ $graphjs.=q(
             if(!currPort) continue;
         checkElem(idx);//create graph container if none
         $('#foo'+idx).html(`minIn: <b>${kmgFormat(minMax.minIn)} </b> maxIn: <b><span class='max'>${kmgFormat(minMax.maxIn)}</span></b> minOut: <b>${kmgFormat(minMax.minOut)}</b> maxOut: <b><span class='max'>${kmgFormat(minMax.maxOut)}</span></b>`);
-        let title=currPort.ifname+" -- "+currPort.port_name;
+        let title=currPort.device_name+" - "+currPort.ifname+" -- "+currPort.port_name;
     graphsArr.push(
     new Dygraph(
         document.getElementById(idx),

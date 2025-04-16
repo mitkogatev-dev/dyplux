@@ -56,7 +56,7 @@ sub get_dashboards{
 }
 sub get_dashboard_ports{
     # my $dashboard_id=shift || "";
-    my $str="SELECT dp.dashboard_id,dp.port_id,d.name,p.port_name,p.ifname 
+    my $str="SELECT dp.dashboard_id,dp.port_id,d.name AS device_name,p.port_name,p.ifname 
         FROM dashboard_ports dp 
         JOIN ports p ON p.port_id=dp.port_id 
         JOIN devices d ON p.device_id=d.device_id
@@ -101,7 +101,7 @@ sub port_data{
         $where="WHERE p.port_id = ?";
     }
     # my $str="SELECT p.`port_id`,p.`device_id`,p.`ifindex`,p.`ifname`,p.`port_name`,d.name,t.threshold_id,t.min_in,t.min_out,t.max_in,t.max_out FROM `ports` p JOIN devices d ON p.device_id=d.device_id LEFT JOIN thresholds t ON p.port_id=t.port_id $where;";
-    my $str="SELECT p.`port_id`,p.`device_id`,p.`ifindex`,p.`ifname`,p.`port_name`,d.name FROM `ports` p JOIN devices d ON p.device_id=d.device_id $where;";
+    my $str="SELECT p.`port_id`,p.`device_id`,p.`ifindex`,p.`ifname`,p.`port_name`,d.name AS device_name FROM `ports` p JOIN devices d ON p.device_id=d.device_id $where;";
     return $str;
 }
 sub port_thresholds{ #TODO!!!
