@@ -60,19 +60,22 @@ my $del_btn="";
 my $port_identifier="ifindex";
 my $what="Creating";
 my $dashboard_select;
+my $th=qq(<th>sel</th><th>ifname</th><th>port name</th><th>state</th>);
 if($input->{edit_ports}){
     $what="Updating";
     $cmd="<input type='hidden' name='cmd' value='update'>";
     $del_btn="<input type='submit' name='del_ports' value='Delete selected'>";
     $port_identifier="port_id";
     $dashboard_select=&gen_dash_select(Service::get_dashboards());
+    $th=qq(<th>sel</th><th>ifname</th><th>port name</th><th>dash</th><th>graph</th>);
+
 }
 
     my $result="<form name='fports' action='' method='post'>";#add form
     $result.=qq(<h1>$what ports for $input->{dev_name}</h1>
         $cmd
         <input type='hidden' name='device_id' value='$input->{device_id}'>
-        <table><tr><th>sel</th><th>ifname</th><th>port name</th><th>stuff</th></tr>
+        <table><tr>$th</tr>
         );
 foreach my $port ( @{ $ports }) {
     my $port_state="";
@@ -91,8 +94,7 @@ $result .= qq(
 );
 if($input->{edit_ports}){
     $result.="<td>".&port_to_dashboard_form($port->{port_id},$dashboard_select)."</td>";
-    #* todo fix css then enable
-    # $result.=qq(<form action="" method="post" target="_blank"><input type="hidden" name="port_id" value="$port->{port_id}"/><input type="submit" value="graph" name="single_graph"/></form></td>);
+    $result.=qq(<td><form action="" method="post" target="_blank"><input type="hidden" name="port_id" value="$port->{port_id}"/><input type="submit" value="show graph" name="single_graph"/></form></td>);
 }
 else {
     # $result.=qq(<td><input type="text" name="ifstate[$port->{$port_identifier}]" value="$port_state"></td>);
