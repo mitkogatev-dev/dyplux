@@ -103,8 +103,11 @@ elsif($input{show_dashboard}){
 
 }
 elsif($input{edit_dashboard}){
-    $html=Strings::dashboard_add_port(Service::get_dashboards($input{dashboard_id}),Service::get_port_data());
-    $html.=Strings::dashboard_list_ports(Service::show_dashboard_ports());
+    $html=Strings::dashboard_edit();
+    # my $dashboard=Service::get_dashboards($input{dashboard_id});
+    # $html=qq(<h4>Edit Dashboard: @$dashboard[0]->{dashboard_name} </h4>);
+    # $html.=Strings::dashboard_add_port($dashboard,Service::get_port_data());
+    # $html.=Strings::dashboard_list_ports(Service::show_dashboard_ports());
 }
 elsif($input{remove_dashboard}){
     $html=Service::rem_dashboard();
@@ -114,8 +117,13 @@ elsif($input{add_to_dash}){
 
     # Service::add_dashboard_port($input{dashboard_id},$input{port_id});
     Service::add_dashboard_port();
-    $html=Strings::dashboard_add_port(Service::get_dashboards($input{dashboard_id}),Service::get_port_data());
-    $html.=Strings::dashboard_list_ports(Service::show_dashboard_ports());
+    # $html=Strings::dashboard_add_port(Service::get_dashboards($input{dashboard_id}),Service::get_port_data());
+    # $html.=Strings::dashboard_list_ports(Service::show_dashboard_ports());
+    $html=Strings::dashboard_edit();
+}
+elsif($input{rem_dash_port}){
+    Service::rem_dashboard_port();
+    $html=Strings::dashboard_edit();
 }
 else{ 
     # my @desc_arr=$cgi->param('sel');

@@ -61,6 +61,9 @@ sub get_dashboard_ports{
 sub add_port_to_dashboard{
     return "INSERT IGNORE INTO dashboard_ports(dashboard_id,port_id) VALUES (?,?)";
 }
+sub rem_port_from_dashboard{
+    return "DELETE FROM dashboard_ports WHERE dashboard_id=? AND port_id=?";
+}
 sub del_dash{
     return "DELETE FROM dashboards WHERE dashboard_id=?";
 }

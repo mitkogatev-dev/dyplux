@@ -235,7 +235,7 @@ sub dashboard_add_port{
     $result.="<input type='hidden' name='dashboard_id' value='$dashboard->{dashboard_id}' />";
     $result.="<select name='port_id'>";
     foreach my $port ( @{ $ports }) {
-        $result.="<option value='$port->{port_id}'>$port->{name} $port->{ifname}($port->{port_name})</option>";
+        $result.="<option value='$port->{port_id}'>$port->{device_name} $port->{ifname}($port->{port_name})</option>";
     }
     $result.="</select> <input type='submit' name='add_to_dash' value='add'/></form>";
     return $result;
@@ -244,8 +244,14 @@ sub dashboard_list_ports{
     my $ports=shift;
     my $result;
     if(!$ports || (scalar @{$ports} == 0)){ return "No ports defined for this dashboard!"; }
+    $result.="<p>Current ports:</p>";
     foreach my $port ( @{ $ports }) {
-        $result.="<div>$port->{name} $port->{ifname}($port->{port_name})</div>";
+        $result.=qq(
+        <form action="" method="post">
+        <input type="hidden" name="dashboard_id" value=$port->{dashboard_id} />
+        <input type="hidden" name="port_id" value=$port->{port_id} />
+        );
+        $result.="<div>$port->{device_name} - $port->{ifname}($port->{port_name}) <input type='submit' name='rem_dash_port' value='delete'></div> </form>";
     }
     return $result;
 }
@@ -262,6 +268,14 @@ sub dashboard_graphs{
             </script>
             
     );
+    return $result;
+}
+sub dashboard_edit{
+    my $result;
+    my $dashboard=Service::get_dashboards($input->{dashboard_id});
+    $result=qq(<h4>Edit Dashboard: @$dashboard[0]->{dashboard_name} </h4>);
+    $result.=&dashboard_add_port($dashboard,Service::get_port_data());
+    $result.=&dashboard_list_ports(Service::show_dashboard_ports());
     return $result;
 }
 sub port_to_dashboard_formNO{

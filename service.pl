@@ -85,6 +85,15 @@ sub show_dashboard_ports{
     $dbh->disconnect();
     return $ports;
 }
+sub rem_dashboard_port{
+    my $dashboard_id=$input->{dashboard_id};
+    my $port_id=$input->{port_id};
+    my $dbh=init_db();
+    my $sth=$dbh->prepare(Query::rem_port_from_dashboard());
+    $sth->execute($dashboard_id,$port_id);
+    $dbh->disconnect();
+    return 1;
+}
 sub add_device{
     my $btn_val="add";
     my($ip,$dev_name,$community)=($input->{ip},$input->{dev_name},$input->{community});
