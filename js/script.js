@@ -25,11 +25,17 @@ function perlPost(port_id,dashboard_id){
     "Content-type": "application/x-www-form-urlencoded; charset=UTF-8"
   }
 })
-    .then((response)=>console.log(response))//todo: check for success
+    .then((response)=>{
+      if(200==response.status){
+        printMsg("<h4>Add to dashboard success</h4>");
+      }
+    })
 }
-function printMsg(){
-  // alert("");
-  document.getElementById("infobox").innerHTML="<h4>Loading graphs... please wait</h4>";
+function printMsg(msg){
+  if(!msg || "" == msg){
+    msg="<h4>Loading graphs... please wait</h4>";
+  }
+  document.getElementById("infobox").innerHTML=msg;
   return 1;
 }
 function selRow(input){
