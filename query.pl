@@ -16,6 +16,10 @@ sub update_device{
     my $str= "UPDATE devices SET ip=?, name=?, community=? WHERE device_id=?";
     return $str;
 }
+sub rem_device{
+    my $str="DELETE FROM devices WHERE device_id=?";
+    return $str;
+}
 sub get_devices{
     my $device_id=shift || "";
     my $where="WHERE 1";

@@ -48,6 +48,9 @@ elsif($input{submit_device}){
 elsif($input{test_snmp}){
     $html= Snmp::test_device($input{ip},$input{community});
 }
+elsif($input{remove_device}){
+    $html=Dispatch::rem_dev();
+}
 elsif($input{index_ports}){
     $html=Service::get_ports($input{ip},$input{community});
 }

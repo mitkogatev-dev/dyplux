@@ -113,7 +113,7 @@ sub add_device{
 
      $sth=$dbh->prepare(Query::add_device());
      $sth->execute($ip,$dev_name,$community);
-     my $dev_id=$sth->{mysql_insertid};
+     $dev_id=$sth->{mysql_insertid};
     }
      $dbh->disconnect();
 
@@ -128,6 +128,18 @@ sub add_device{
     # return "Device <b>$name</b> created";
 
     
+}
+sub del_device{
+    my $device_id=shift;
+    my $dbh=init_db();
+    my $result;
+    my $sth=$dbh->prepare(Query::rem_device());
+    if($sth->execute($device_id)){
+        $result=1;
+    }
+    else{$result=0;}
+    $dbh->disconnect();
+    return $result;
 }
 sub get_devices{
     my $dbh=init_db();

@@ -17,6 +17,12 @@ sub get_dev{
     my $devices=Service::get_devices();
      return Strings::device_list($devices);
 }
+sub rem_dev{
+    if(Service::del_device($input->{device_id})){
+        return "Device deleted";
+    }
+    return Strings::error();
+}
 sub show_ports{
     my $ports=Service::get_ports_db();
     return Strings::add_port_form($ports);

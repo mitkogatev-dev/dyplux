@@ -37,6 +37,7 @@ sub add_dev_form{
     <input type="text" name="community" id="community" value="$community" required>
 
     <input type="submit" value="$btn_val" name="submit_device">
+    <input type="submit" value="delete" name="remove_device">
     
     $btn
 </form>);
