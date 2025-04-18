@@ -43,7 +43,7 @@ function parseKMG(str){
     return([str*1]);
 }
 function filterMax(){
-    let val=$('#filter').val();
+    let val=$('#filterMax').val();
     if(val.length === 0){
         $('.gr_container').show();
         return;
@@ -66,4 +66,23 @@ function filterMax(){
             }
         }
       })
+}
+function filterByTitle(){
+    let val=$('#filterTitle').val().toUpperCase();
+    if(val.length === 0){
+        $('.gr_container').show();
+        return;
+    }
+    $('.gr_container').hide();
+    $('.dygraph-title').each(function(){
+        let txt=$(this).text().toUpperCase();
+        if(txt.includes(val)){
+            $(this.closest('.gr_container')).show();
+        }
+    })
+}
+function resetFilter(){
+    $('#filterMax').val("");
+    $('#filterTitle').val("");
+    $('.gr_container').show();
 }
