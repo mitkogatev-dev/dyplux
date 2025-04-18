@@ -7,7 +7,7 @@ use Data::Dumper qw( Dumper );
 use FindBin 1.51 qw( $RealBin );
 use lib $RealBin;
 # use lib $RealBin."/lib";
-
+my $start_run=time();
 my $dir=$RealBin;
 my $clip=$ENV{REMOTE_ADDR};
 my $debugFile = "$dir/debug.log";
@@ -180,4 +180,6 @@ print qq(
     </body>
 );
 #DEBUG
-print    "<div><h3>DEBUG cgi</h3>".Dumper($cgi)."</div>" if $cfg->{debug_cgi};
+my $end_run = time();
+my $run_time = $end_run - $start_run;
+print    "<div><h3>DEBUG cgi</h3> <div>Load time: $run_time seconds.</div>".Dumper($cgi)."</div>" if $cfg->{debug_cgi};

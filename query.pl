@@ -87,9 +87,15 @@ sub get_port_alerts{
     my $port_id=shift || "";
     my $where="WHERE 1";
     if("" ne $port_id){
-        $where="WHERE p.port_id = ?";
+        $where="WHERE a.port_id = ?";
     }
-    my $str = "SELECT a.alert_id,a.port_id,a.dt,at.name FROM alerts a JOIN alert_types at ON a.alert_type_id=at.alert_type_id $where;";
+    my $str = "SELECT a.alert_id,a.port_id,a.dt,t.name,p.ifname,p.port_name,d.name AS device_name 
+        FROM alerts a 
+        JOIN alert_types t ON a.alert_type_id=t.alert_type_id
+        JOIN ports p ON a.port_id=p.port_id
+        JOIN devices d ON p.device_id=d.device_id 
+        $where ORDER BY a.dt DESC;";
+
     return $str;
 }
 sub port_data{

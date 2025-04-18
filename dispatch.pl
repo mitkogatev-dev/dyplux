@@ -65,7 +65,7 @@ sub port_detail{
     # return "$input->{port_id}";
     # return Strings::port_details($input->{port_id},Service::get_port_data($input->{port_id})) . &threshold() . "<h2>Alerts:</h2> TODO!!!";
     my $port=Service::get_port_data($input->{port_id});
-    return Strings::port_details($port) . &threshold() . "<h2>Alerts:</h2> TODO!!!";
+    return Strings::port_details($port) . &threshold() . &show_alerts();
 }
 sub show_dashboard_graphs{
     my $ports=shift;
@@ -82,7 +82,8 @@ sub threshold{
     return Strings::port_thresh(Service::get_port_thresholds($input->{port_id}));
 }
 sub show_alerts{
-    return Dumper(Service::get_alerts($input->{port_id}));
+    # return Dumper(Service::get_alerts($input->{port_id}));
+    return Strings::alerts(Service::get_alerts($input->{port_id}));
 }
 sub show_dashboards{
     my $result=Strings::dashboard_form();

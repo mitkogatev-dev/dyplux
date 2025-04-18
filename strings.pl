@@ -278,6 +278,20 @@ sub dashboard_edit{
     $result.=&dashboard_list_ports(Service::show_dashboard_ports());
     return $result;
 }
+sub alerts{
+    my $result;
+    my $alerts=shift;
+    $result.=qq(<table><tr><th>port</th><th>alert</th><th>time</th></tr>);
+    foreach my $alert (@ {$alerts}){
+        # my $port=Service::get_port_data($alert->{port_id})->[0];
+        $result.=qq(<tr><td>$alert->{device_name} - $alert->{ifname}($alert->{port_name})</td><td>$alert->{name}</td><td>$alert->{dt}</td></tr>);
+    }
+    $result.="</table>";
+    return $result;
+
+
+
+}
 sub port_to_dashboard_formNO{
     #todo:
     #cannot have form inside form

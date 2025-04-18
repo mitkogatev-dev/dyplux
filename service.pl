@@ -187,12 +187,12 @@ sub get_alerts{
     my $port_id=shift;
     my $dbh=init_db();
     my $alerts;
-    if($port_id){
-    $alerts=$dbh->selectall_arrayref(Query::get_port_alerts($port_id),{Slice=>{},$port_id});
+    if (!$port_id || "" eq $port_id){
+    $alerts=$dbh->selectall_arrayref(Query::get_port_alerts(),{Slice=>{},});
     }
     else
     {
-    $alerts=$dbh->selectall_arrayref(Query::get_port_alerts(),{Slice=>{},});
+    $alerts=$dbh->selectall_arrayref(Query::get_port_alerts($port_id),{Slice=>{}},$port_id);
     }
     return $alerts; 
 }
