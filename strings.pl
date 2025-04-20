@@ -37,7 +37,7 @@ sub add_dev_form{
     <input type="text" name="community" id="community" value="$community" required>
 
     <input type="submit" value="$btn_val" name="submit_device">
-    <input type="submit" value="delete" name="remove_device">
+    <input type="submit" value="delete" name="remove_device" onclick="sure(event);"/>
     
     $btn
 </form>);
@@ -65,7 +65,7 @@ my $th=qq(<th>sel</th><th>ifname</th><th>port name</th><th>state</th>);
 if($input->{edit_ports}){
     $what="Updating";
     $cmd="<input type='hidden' name='cmd' value='update'>";
-    $del_btn="<input type='submit' name='del_ports' value='Delete selected'>";
+    $del_btn=qq(<input type='submit' name='del_ports' value='Delete selected' onclick="sure(event);">);
     $port_identifier="port_id";
     $dashboard_select=&gen_dash_select(Service::get_dashboards());
     $th=qq(<th>sel</th><th>ifname</th><th>port name</th><th>dash</th><th>graph</th>);
@@ -223,7 +223,7 @@ sub dashboard_list{
             <td>$dashboard->{dashboard_name}</td>
             <td><input type="submit" name="show_dashboard" value="show"/></td>
             <td><input type="submit" name="edit_dashboard" value="edit" /></td>
-            <td><input type="submit" name="remove_dashboard" value="delete" /></td>
+            <td><input type="submit" name="remove_dashboard" value="delete" onclick="sure(event);"/></td>
             </form>
             </tr>);
     }

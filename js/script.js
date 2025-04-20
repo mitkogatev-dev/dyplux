@@ -41,3 +41,11 @@ function printMsg(msg){
 function selRow(input){
   input.closest('tr').querySelector('[name=sel]').click();
 }
+function sure(e){
+  if (confirm("sure to delete?")) {
+  return 1;
+  }else{
+    e.preventDefault();
+    return 0;
+  }
+}
