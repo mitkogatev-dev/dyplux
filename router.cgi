@@ -38,6 +38,7 @@ if($request_method eq "POST"){
 # print $debug Dumper($input{name});
 if($input{dada}){
     $html="you pressed dada and came from $clip";
+    $html.=Dumper(Service::find_ports_by_name(""));
 }
 elsif($input{add_dev} || $input{edit_dev}){
     $html=Strings::add_dev_form();

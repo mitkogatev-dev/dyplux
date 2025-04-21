@@ -297,6 +297,15 @@ sub get_port_formdata{
         # return @selected;
         return "Done! Created $counter ports";
 }
+sub find_ports_by_name{
+    my $srch=shift || "";
+    my @found;
+    if("" eq $srch) {return @found};
+    my $ports=&get_port_data();
+    #grep { $port->{port_id} == $_->{port_id} } @{$device->{thresholds}};
+    @found=grep { $_->{port_name} =~m/$srch/i } @{$ports};
+    return @found;
+}
 sub get_graphs_by_device{
     my $ports=get_ports_db();
 # use lib $RealBin."/lib";
