@@ -1,7 +1,9 @@
 ## use the input in main form for quicksearch ports
 
 eg: select from ports where name like %name%;
+
 ^!might not work(SQL injection), workaround: select all ports and filther by name;
+
 then use predefined dashboard func to select by port_ids from inluxdb and show graphs
 
 ## Delete graphs from Influx on device or port delete;
