@@ -38,7 +38,6 @@ if($request_method eq "POST"){
 # print $debug Dumper($input{name});
 if($input{dada}){
     $html="you pressed dada and came from $clip";
-    $html.=Dumper(Service::find_ports_by_name(""));
 }
 elsif($input{add_dev} || $input{edit_dev}){
     $html=Strings::add_dev_form();
@@ -129,6 +128,10 @@ elsif($input{rem_dash_port}){
     Service::rem_dashboard_port();
     $html=Strings::dashboard_edit();
 }
+elsif($input{quick_find}){
+    # $html="<p>todo: show graphs</p>" . Dumper(Service::find_ports_by_name($input{quick_find}));
+    $html=Dispatch::show_dashboard_graphs(Service::find_ports_by_name($input{quick_find}));
+}
 else{ 
     # my @desc_arr=$cgi->param('sel');
     $html="<h2>Input not handled!!!</h2>" . Dumper($cgi);
@@ -148,12 +151,12 @@ $html.="<div></div>";
 # create(copy...) js to update parent html with results
 print $cgi->header("text/html;charset=UTF-8");
 my $js="";
-if($input{show_grpahs} || $input{single_graph} || $input{show_dashboard}){
+# if($input{show_grpahs} || $input{single_graph} || $input{show_dashboard}){
     $js="<script src='js/jquery.min.js'></script>
     <link rel='stylesheet' href='css/dygraph.css'>
     <script src='js/dygraph-combined.js'></script>
     <script src='js/filters.js'></script>";
-}
+# }
 
 #*******************
 #*   HEAD SECTION

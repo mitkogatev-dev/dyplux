@@ -304,7 +304,7 @@ sub find_ports_by_name{
     my $ports=&get_port_data();
     #grep { $port->{port_id} == $_->{port_id} } @{$device->{thresholds}};
     @found=grep { $_->{port_name} =~m/$srch/i } @{$ports};
-    return @found;
+    return \@found;
 }
 sub get_graphs_by_device{
     my $ports=get_ports_db();

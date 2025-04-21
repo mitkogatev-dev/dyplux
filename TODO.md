@@ -1,12 +1,15 @@
-## use the input in main form for quicksearch ports
 
-eg: ~~select from ports where name like %name%;~~
+### &#x2611; use the input in main form for quicksearch ports
+<details>
 
-~~^!might not work(SQL injection),~~
+eg: &#9746; ~~select from ports where name like %name%;~~
 
-[v] workaround: select all ports and filther by name;
+&#9746; ~~^!might not work(SQL injection),~~
 
-then use predefined dashboard func to select by port_ids from inluxdb and show graphs
+&#9745; workaround: select all ports and filther by name;
+
+&#9745; then use predefined dashboard func to select by port_ids from inluxdb and show graphs
+</details>
 
 ## Delete graphs from Influx on device or port delete;
 
