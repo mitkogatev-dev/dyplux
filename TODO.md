@@ -21,4 +21,6 @@ eg: &#9746; ~~select from ports where name like %name%;~~
 
 ## delete port from dash has no confirm
 
+## When threshold limit reached, collector will rise alert on every run
+
 ## 
