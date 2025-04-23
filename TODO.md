@@ -23,4 +23,16 @@ eg: &#9746; ~~select from ports where name like %name%;~~
 
 ## When threshold limit reached, collector will rise alert on every run
 
+<details>
+
+insert alerts file in tmp tbl;
+
+check for port_id,alert_type_id,active in alerts tbl if found do nothing, else insert as new active
+
+disable active?
+
+after insert tmp: select from alerts where active check if exists in tmp if not disable;
+
+</details>
+
 ## 
