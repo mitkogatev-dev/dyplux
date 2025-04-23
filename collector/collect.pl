@@ -24,17 +24,17 @@ my $insert_file="$dir/results.txt";
 my $alerts_file="$dir/alerts.txt";
 # my $time=60;
 my %cfg=(
- influx_binary => "/usr/sbin/influx",
- influx_bucket => "traffic",
- influx_url => "http://127.0.0.1:8086",
- influx_token => "AlAbala==",
- influx_org => "myorg",
-#
+   max_threads => 4,
+   influx_binary => "/usr/sbin/influx",
+   influx_bucket => "traffic",
+   influx_url => "http://127.0.0.1:8086",
+   influx_token => "AlAbala==",
+   influx_org => "myorg",
    sql_host => "127.0.0.1",
-    sql_port => "3306",
-    sql_user => "myuser",
-    sql_pass => "fakepassword",
-    sql_db => "graphs"
+   sql_port => "3306",
+   sql_user => "myuser",
+   sql_pass => "fakepassword",
+   sql_db => "graphs"
 );
 #
 if (open my $cfg_file, "< $config_file") {
@@ -77,20 +77,25 @@ open (my $insert_fh,">", $insert_file) or die $!;
 open (my $alerts_fh,">", $alerts_file) or die $!;
 
 #Threads block(fork)
-my $threadsCount=0;
-my $maxThreads=4;
+#some debug optimisation
+#https://www.perl.com/article/fork-yeah-/
+my $threads_count=0;
 
 foreach my $device ( @{ $devices }) {
-   $threadsCount++;
-   wait unless $threadsCount <= $maxThreads;
+   $threads_count++;
+   wait unless $threads_count <= $cfg{max_threads};
 my $pid;
 next if $pid = fork;    # Parent goes to next server.
-die "fork failed: $!" unless defined $pid;            
+die "fork failed: $!" unless defined $pid; 
 collect($device); #execute this inside fork
 exit;
 }
 
-while (wait() != -1) {}
+my $child;
+do {
+  $child = waitpid -1, 0;
+#   print $child ."\n";
+} while ($child > 0);
 #####
 
 close $current_fh;
