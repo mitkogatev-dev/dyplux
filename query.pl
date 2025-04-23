@@ -93,12 +93,12 @@ sub get_port_alerts{
     if("" ne $port_id){
         $where="WHERE a.port_id = ?";
     }
-    my $str = "SELECT a.alert_id,a.port_id,a.dt,t.name,p.ifname,p.port_name,d.name AS device_name 
+    my $str = "SELECT a.alert_id,a.port_id,a.created_at,a.disabled_at,t.name,p.ifname,p.port_name,d.name AS device_name 
         FROM alerts a 
         JOIN alert_types t ON a.alert_type_id=t.alert_type_id
         JOIN ports p ON a.port_id=p.port_id
         JOIN devices d ON p.device_id=d.device_id 
-        $where ORDER BY a.dt DESC;";
+        $where ORDER BY a.created_at DESC;";
 
     return $str;
 }

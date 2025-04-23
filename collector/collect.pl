@@ -48,15 +48,21 @@ if (open my $cfg_file, "< $config_file") {
 ###
 
 
-my $dbh = DBI->connect("DBI:mysql:$cfg{sql_db}:$cfg{sql_host}:$cfg{sql_port}", $cfg{sql_user}, $cfg{sql_pass},                                                                                                                                                                                
-{ RaiseError => 1, AutoCommit => 1 });   
-
+# my $dbh = DBI->connect("DBI:mysql:$cfg{sql_db}:$cfg{sql_host}:$cfg{sql_port}", $cfg{sql_user}, $cfg{sql_pass},                                                                                                                                                                                
+# { RaiseError => 1, AutoCommit => 1 });   
+my $dbh=init_db();
 #get defined ports from db
 my $qdev="SELECT `device_id`,`ip`,`community` FROM `devices` WHERE 1";
 my $devices=$dbh->selectall_arrayref($qdev,{Slice=>{}} ); 
 my $qports="SELECT `port_id`,`ifindex` FROM `ports` WHERE device_id=?";
 # my $qports="SELECT p.`port_id`,p.`ifindex`,t.min_in,t.max_in,t.min_out,t.max_out FROM `ports` p LEFT JOIN thresholds t ON p.port_id=t.port_id WHERE p.device_id=?";
 my $qthresh="SELECT p.port_id,t.min_in,t.max_in,t.min_out,t.max_out FROM `ports` p JOIN thresholds t ON p.port_id=t.port_id WHERE p.device_id=?";
+my $qtrunc="TRUNCATE TABLE alerts_tmp;";
+my $qdisable_alert="UPDATE alerts a 
+LEFT JOIN alerts_tmp t ON (a.port_id=t.port_id AND a.alert_type_id=t.alert_type_id)
+SET a.active=0 
+WHERE a.active AND t.port_id IS NULL;";
+my $qrise_alert="INSERT INTO `alerts`(`alert_type_id`, `port_id`) SELECT t.`alert_type_id`, t.`port_id` FROM alerts_tmp t LEFT JOIN alerts a ON (a.port_id=t.port_id AND a.alert_type_id=t.alert_type_id AND a.active) WHERE a.port_id IS NULL;";
 foreach my $device ( @{ $devices }) {
 $device->{ports}=$dbh->selectall_arrayref($qports,{Slice=>{}},$device->{device_id} );
 $device->{thresholds}=$dbh->selectall_arrayref($qthresh,{Slice=>{}},$device->{device_id} );
@@ -97,9 +103,26 @@ close $alerts_fh;
 # *** !!! DISABLED FOR TEST
 my $save=qx($cfg{influx_binary} write -b $cfg{influx_bucket} -f $insert_file --host $cfg{influx_url} -t $cfg{influx_token} -o $cfg{influx_org});
 # ** TODO: insert alerts(thresholds)
- my $sqlsave=qx(mysql --skip-ssl=1 -h$cfg{sql_host} -u$cfg{sql_user} -p$cfg{sql_pass} -P$cfg{sql_port} --local-infile=1 -e "LOAD DATA LOCAL INFILE '$alerts_file' INTO TABLE $cfg{sql_db}.alerts FIELDS TERMINATED BY ',' (alert_id,alert_type_id,port_id)");
+#reconnect
+$dbh=init_db();
+#empty tmp
+my $sth_trunc=$dbh->prepare($qtrunc);
+$sth_trunc->execute();
+#insert new tmp
+my $sqlsave=qx(mysql --skip-ssl=1 -h$cfg{sql_host} -u$cfg{sql_user} -p$cfg{sql_pass} -P$cfg{sql_port} --local-infile=1 -e "LOAD DATA LOCAL INFILE '$alerts_file' INTO TABLE $cfg{sql_db}.alerts_tmp FIELDS TERMINATED BY ',' (alert_id,alert_type_id,port_id)");
+#
+my $sth_disable=$dbh->prepare($qdisable_alert);
+my $sth_rise=$dbh->prepare($qrise_alert);
+$sth_disable->execute();
+$sth_rise->execute();
+$dbh->disconnect;
 
+exit;
 
+sub init_db{
+   return DBI->connect("DBI:mysql:$cfg{sql_db}:$cfg{sql_host}:$cfg{sql_port}", $cfg{sql_user}, $cfg{sql_pass},                                                                                                                                                                                
+{ RaiseError => 1, AutoCommit => 1 });
+}
 #collect data
 sub collect{
 my ($device)=shift;
@@ -195,13 +218,13 @@ sub threshold_check{
    if ($min_in > -1 && $traffic_in < $min_in){
       print $alerts_fh "null,3,$thresh->{port_id}\n";
    }
-   elsif ($max_in > -1 && $traffic_in > $min_in){
+   elsif ($max_in > -1 && $traffic_in > $max_in){
       print $alerts_fh "null,4,$thresh->{port_id}\n";
    }
    elsif ($min_out > -1 && $traffic_out < $min_out){
       print $alerts_fh "null,3,$thresh->{port_id}\n";
    }
-   elsif ($max_out > -1 && $traffic_out < $max_out){
+   elsif ($max_out > -1 && $traffic_out > $max_out){
       print $alerts_fh "null,4,$thresh->{port_id}\n";
    }
 }

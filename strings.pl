@@ -284,10 +284,10 @@ sub dashboard_edit{
 sub alerts{
     my $result;
     my $alerts=shift;
-    $result.=qq(<table><tr><th>port</th><th>alert</th><th>time</th></tr>);
+    $result.=qq(<table><tr><th>port</th><th>alert</th><th>created at</th><th>disabled at</th></tr>);
     foreach my $alert (@ {$alerts}){
         # my $port=Service::get_port_data($alert->{port_id})->[0];
-        $result.=qq(<tr><td>$alert->{device_name} - $alert->{ifname}($alert->{port_name})</td><td>$alert->{name}</td><td>$alert->{dt}</td></tr>);
+        $result.=qq(<tr><td>$alert->{device_name} - $alert->{ifname}($alert->{port_name})</td><td>$alert->{name}</td><td>$alert->{created_at}</td><td>$alert->{disabled_at}</td></tr>);
     }
     $result.="</table>";
     return $result;
