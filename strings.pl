@@ -253,8 +253,12 @@ sub dashboard_list_ports{
         <form action="" method="post">
         <input type="hidden" name="dashboard_id" value=$port->{dashboard_id} />
         <input type="hidden" name="port_id" value=$port->{port_id} />
-        );
-        $result.="<div>$port->{device_name} - $port->{ifname}($port->{port_name}) <input type='submit' name='rem_dash_port' value='delete'></div> </form>";
+        
+        <div>
+        $port->{device_name} - $port->{ifname}($port->{port_name}) 
+        <input type='submit' name='rem_dash_port' value='delete' onclick="sure(event);">
+        </div> 
+        </form>);
     }
     return $result;
 }

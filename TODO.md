@@ -1,5 +1,6 @@
 
 ### &#x2611; use the input in main form for quicksearch ports
+
 <details>
 
 eg: &#9746; ~~select from ports where name like %name%;~~
@@ -9,6 +10,7 @@ eg: &#9746; ~~select from ports where name like %name%;~~
 &#9745; workaround: select all ports and filther by name;
 
 &#9745; then use predefined dashboard func to select by port_ids from inluxdb and show graphs
+
 </details>
 
 ## Delete graphs from Influx on device or port delete;
@@ -19,7 +21,7 @@ eg: &#9746; ~~select from ports where name like %name%;~~
 
 ## finish curl method
 
-## delete port from dash has no confirm
+### &#9745; delete port from dash has no confirm
 
 ### &#9745; When threshold limit reached, collector will rise alert on every run
 
