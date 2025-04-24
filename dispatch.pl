@@ -75,6 +75,9 @@ sub port_detail{
 }
 sub show_dashboard_graphs{
     my $ports=shift;
+    if(!$ports || scalar @{ $ports } < 1){
+        return "no ports found";
+    }
     my $str="";
     foreach my $port ( @{ $ports }) {
         $str.="$port->{port_id}|";

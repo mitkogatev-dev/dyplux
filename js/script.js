@@ -49,3 +49,11 @@ function sure(e){
     return 0;
   }
 }
+function validateFind(e){
+  let val=document.getElementById('quickFind').value;
+  if (!val || ""===val){
+    e.preventDefault();
+    return 0;
+  }
+  else{return 1;}
+}
