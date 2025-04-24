@@ -186,21 +186,24 @@ sub port_thresh{
     my $ports=shift;
     # my $port=@{ $port_arr }[0];
     my $result="<form action='' method='post'>";
+    $result.=qq(<table><tr>
+        <th>port</th><th>min in</th><th>max in</th><th>min out</th><th>max out</th>
+        </tr>);
     foreach my $port ( @{ $ports }) {
         my $min_in=Parser::to_kmg($port->{min_in}) //  -1;
         my $max_in=Parser::to_kmg($port->{max_in}) //  -1;
         my $min_out=Parser::to_kmg($port->{min_out}) //  -1;
         my $max_out=Parser::to_kmg($port->{max_out})  //  -1;
-
-    $result.=qq(
-        <h4>Threshold for: $port->{name} $port->{ifname}($port->{port_name})</h4>
+        $result.=qq(<tr>
         <input type=hidden name="port_ids" value="$port->{port_id}" />
-        minIn:<input type="text" name="min_in[$port->{port_id}]" value="$min_in" />
-        maxIn:<input type="text" name="max_in[$port->{port_id}]" value="$max_in" />
-        minOut:<input type="text" name="min_out[$port->{port_id}]" value="$min_out" />
-        maxOut:<input type="text" name="max_out[$port->{port_id}]" value="$max_out" />
-        );
+        <td>$port->{name} $port->{ifname}($port->{port_name})</td>
+        <td><input type="text" name="min_in[$port->{port_id}]" value="$min_in" /></td>
+        <td><input type="text" name="max_in[$port->{port_id}]" value="$max_in" /></td>
+        <td><input type="text" name="min_out[$port->{port_id}]" value="$min_out" /></td>
+        <td><input type="text" name="max_out[$port->{port_id}]" value="$max_out" /></td>
+        </tr>);
     }
+    $result.="</table>";
     $result.="<input type='submit' name='upd_thresh' value='update' />";
     return $result;
 
