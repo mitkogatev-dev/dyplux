@@ -18,9 +18,12 @@ $cgi->charset('utf-8');
 $CGI::LIST_CONTEXT_WARN = 0 ;
 my @params=$cgi->param();
 my $request_method=$cgi->request_method();
+my $input_str="";
 
 for my $key ( $cgi->param() ) {
  $input{$key} = $cgi->param($key);
+ #workaround to pass inputs to other cgi
+ $input_str.="$key=".$cgi->param($key)."&";
 }
 my $html=""; 
 require "$dir/config.pl";
@@ -73,7 +76,7 @@ elsif($input{del_ports}){
     $html=Dispatch::get_port_formdata($cgi);
 
 }
-elsif($input{show_grpahs}){
+elsif($input{show_device_grpahs}){
      $html=Dispatch::show_graphs($input{device_id});
 }
 elsif($input{single_graph}){
@@ -169,7 +172,7 @@ print qq(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
     <script src='js/script.js'></script>
-   <script src='script.cgi?test=me&smthing=other'></script>
+   <script src='script.cgi?$input_str'></script>
     $js
     <title>Frame</title>
 </head>

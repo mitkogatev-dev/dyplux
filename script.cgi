@@ -35,6 +35,7 @@ my $output="";
 # if ($ref !~ /router.cgi/gi){ print "bye"; exit 0;}
 #
 require "$dir/config.pl";
+require "$dir/influx.pl";
 my $cfg=Cfg::get_config();
 my $graphjs="";
 
@@ -125,12 +126,13 @@ $graphjs=q(
 );
 ############## graph.js with js fetch ########
 if($cfg->{influx_query_method} && "js" eq $cfg->{influx_query_method}){
+
  $graphjs.=qq( 
     function buildQuery(argsArr) {
     let host = "$cfg->{influx_url}";
     const db='$cfg->{influx_bucket}';
-);
-$graphjs.=q(
+ );
+ $graphjs.=q(
         let type=argsArr[0];
         let query="";
         if ("device" == type){
@@ -145,21 +147,15 @@ $graphjs.=q(
         }
         return (encodeURI(`${host}query?db=${db}&q=${query}`));
     }
-);
-$graphjs.=qq(
+ );
+#  my $q=Influx_curl::query_builder();
+ $graphjs.=qq(
     const fetchData = (argsArr) => {
-    
         const query = buildQuery(argsArr);
-        
-    
         return fetch(query, {
-            
             credentials: "include", headers: {
-
                 Authorization: "Token $cfg->{influx_token}",
-
             },
-            
         })
             .then(response => {
                 if (response.status !== 200) {
@@ -173,8 +169,8 @@ $graphjs.=qq(
             })
             .catch(error => console.log(error));
     }
-);
-$graphjs.=q(
+ );
+ $graphjs.=q(
     function drawGraph(arr){
         let graphType=arr[0];
         let ids=arr[1];//
@@ -237,7 +233,7 @@ $graphjs.=q(
     
     });
     }
-);
+ );
 }else{ #curl
     $graphjs.=q(
     function drawGraph(arr){
@@ -321,6 +317,6 @@ $output.=qq(
 
 print $output;
 ###debug
-# print "/**".Dumper($cgi)."*/";
+print "/**".Dumper($cgi)."*/";
 # print "/**".Dumper(%ENV)."*/";
 # print "/**".Dumper($cfg)."*/";

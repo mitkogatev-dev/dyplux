@@ -114,7 +114,7 @@ sub device_list{
         $result.="<form action='' method='post'><tr>
         <td>$device->{name}</td>
         <td>$device->{ip}</td>
-        <td><input type='submit' name='show_grpahs' value='show graphs' onclick='printMsg();'></td>
+        <td><input type='submit' name='show_device_grpahs' value='show graphs' onclick='printMsg();'></td>
         <td><input type='submit' name='edit_dev' value='edit'></td>
         <td><input type='submit' name='edit_ports' value='edit interfaces'></td>
         <td>
@@ -131,9 +131,7 @@ sub device_list{
 }
 sub dygraph{
     my $result;
-    # my $data=encode_json(shift);
     my $device_id=shift;
-    # my $ports=encode_json(shift);
     my $ports=to_json(shift);
     my $json;
     if("js" ne $cfg->{influx_query_method}){
@@ -142,12 +140,8 @@ sub dygraph{
     $result.="<h4>showing graphs for: $input->{dev_name}</h4>";
     $result.=&graph_filters();
     $result.="<div id='div_g'></div>";
-    # $result.="<script>let data=$data;console.log(data)</script>";
-
     $result.=qq(<script>
-    
         drawGraph(["device",$device_id,$ports,$json]);
-            
             </script>
             
     );
