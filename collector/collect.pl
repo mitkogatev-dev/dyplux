@@ -150,7 +150,7 @@ my ($session, $error) = Net::SNMP->session(
 }
 ##calculates per device time diff
 my $currts=time(); #get current run timestamp
-my $greptime="grep $device->{device_id}--ts= $prev_file";
+my $greptime="grep ^$device->{device_id}--ts= $prev_file";
 my ($na,$prevts)=split('=',qx($greptime));
 # print "prev=$prevts\n";
 # my $time=$prevts+0-$currts;
