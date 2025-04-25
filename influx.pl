@@ -25,5 +25,28 @@ sub get_data{
     #calculate min max values here
     #
 }
+sub query_builder{
+    my $type=shift;
+    my $arg=shift;
+    if(!$type || !$arg){return;}
+    if("" eq $type || "" eq $arg){return;}
+    my $query;
+    if("device" eq $type){
+        $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE device_id=~ \/\^$arg\$\/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id);
+    }
+    elsif("port" eq $type){
+        $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ \/\^$arg\$\/ GROUP BY device_id,port_id);
+        # todo
+    }
+    elsif("dashboard" eq $type){
+        $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ \/\^$arg\$\/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id);
+        # todo
+    }
+    elsif("remove" eq $type){
+        my ($tag,$id) = split(':',$arg);
+        $query=qq(DELETE FROM interfaceTraffic WHERE $tag=~ \/\^$id\$\/ );
+    }
+    print $debug $query;
+}
 
 return 1;
