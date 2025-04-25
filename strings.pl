@@ -140,10 +140,7 @@ sub dygraph{
     $json=Influx_curl::get_data($device_id);
     }
     $result.="<h4>showing graphs for: $input->{dev_name}</h4>";
-    $result.="<div>filter max traffic > <input type='text' id='filterMax' value='0M'/> <button onclick='filterMax()'>filter</button></div>";
-    $result.="<div>filter by title <input type='text' id='filterTitle' value=''/> <button onclick='filterByTitle()'>filter</button></div>";
-    $result.="<div><button onclick='resetFilter()'>reset filters</button></div>";
-
+    $result.=&graph_filters();
     $result.="<div id='div_g'></div>";
     # $result.="<script>let data=$data;console.log(data)</script>";
 
@@ -154,6 +151,13 @@ sub dygraph{
             </script>
             
     );
+    return $result;
+}
+sub graph_filters{
+    my $result="";
+    $result.="<div>filter max traffic > <input type='text' id='filterMax' value='0M'/> <button onclick='filterMax()'>filter</button></div>";
+    $result.="<div>filter by title <input type='text' id='filterTitle' value=''/> <button onclick='filterByTitle()'>filter</button></div>";
+    $result.="<div><button onclick='resetFilter()'>reset filters</button></div>";
     return $result;
 }
 sub port_details{
