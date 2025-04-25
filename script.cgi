@@ -36,6 +36,8 @@ my $output="";
 #
 require "$dir/config.pl";
 require "$dir/influx.pl";
+require "$dir/service.pl";
+require "$dir/query.pl";
 my $cfg=Cfg::get_config();
 my $graphjs="";
 
@@ -126,25 +128,27 @@ $graphjs=q(
 );
 ############## graph.js with js fetch ########
 if($cfg->{influx_query_method} && "js" eq $cfg->{influx_query_method}){
-
+# my $q=Influx_curl::query_builder("device",$input{device_id});
+my $q=Influx_curl::query_builder(\%input);
  $graphjs.=qq( 
     function buildQuery(argsArr) {
     let host = "$cfg->{influx_url}";
     const db='$cfg->{influx_bucket}';
+    let query="$q";
  );
  $graphjs.=q(
         let type=argsArr[0];
-        let query="";
-        if ("device" == type){
-            query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE device_id=~ /^${argsArr[1]}$/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id`;   
-        }
-        else if("port" == type){
-            query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ /^${argsArr[1]}$/  GROUP BY device_id,port_id`; 
-        }
-        else if("dashboard" == type){
-            console.log("TODO:dashboard");
-            query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ /^${argsArr[1]}$/  AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id`; 
-        }
+        //let query="";
+        // if ("device" == type){
+        //     query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE device_id=~ /^${argsArr[1]}$/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id`;   
+        // }
+        // else if("port" == type){
+        //     query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ /^${argsArr[1]}$/  GROUP BY device_id,port_id`; 
+        // }
+        // else if("dashboard" == type){
+        //     console.log("TODO:dashboard");
+        //     query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ /^${argsArr[1]}$/  AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id`; 
+        // }
         return (encodeURI(`${host}query?db=${db}&q=${query}`));
     }
  );

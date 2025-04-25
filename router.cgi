@@ -76,7 +76,7 @@ elsif($input{del_ports}){
     $html=Dispatch::get_port_formdata($cgi);
 
 }
-elsif($input{show_device_grpahs}){
+elsif($input{show_device_graphs}){
      $html=Dispatch::show_graphs($input{device_id});
 }
 elsif($input{single_graph}){
@@ -85,7 +85,7 @@ elsif($input{single_graph}){
 elsif($input{show_dashboard}){
     $html="TODO!!! show port grapsh here";
     my $ports=Service::show_dashboard_ports();
-    $html.=Strings::dashboard_list_ports($ports);
+    # $html.=Strings::dashboard_list_ports($ports);
     $html.=Dispatch::show_dashboard_graphs($ports);
 }
 elsif($input{thresholds}){

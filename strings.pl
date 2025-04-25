@@ -114,7 +114,7 @@ sub device_list{
         $result.="<form action='' method='post'><tr>
         <td>$device->{name}</td>
         <td>$device->{ip}</td>
-        <td><input type='submit' name='show_device_grpahs' value='show graphs' onclick='printMsg();'></td>
+        <td><input type='submit' name='show_device_graphs' value='show graphs' onclick='printMsg();'></td>
         <td><input type='submit' name='edit_dev' value='edit'></td>
         <td><input type='submit' name='edit_ports' value='edit interfaces'></td>
         <td>

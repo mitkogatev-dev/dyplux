@@ -26,27 +26,27 @@ sub get_data{
     #
 }
 sub query_builder{
-    my $type=shift;
-    my $arg=shift;
-    if(!$type || !$arg){return;}
-    if("" eq $type || "" eq $arg){return;}
+    my $input=shift;
     my $query;
-    if("device" eq $type){
-        $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE device_id=~ \/\^$arg\$\/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id);
+    print $debug Dumper($input);
+    if($input->{show_device_graphs}){
+        $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE device_id=~ \/\^$input->{device_id}\$\/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id);
     }
-    elsif("port" eq $type){
-        $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ \/\^$arg\$\/ GROUP BY device_id,port_id);
-        # todo
+    elsif($input->{single_graph}){
+        $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ \/\^$input->{port_id}\$\/ GROUP BY device_id,port_id);
     }
-    elsif("dashboard" eq $type){
+    elsif($input->{show_dashboard}){
+        #todo: combine port_ids
+        my $arg="";
+        my $ports=Service::show_dashboard_ports($input->{dashboard_id});
+        foreach my $port ( @{ $ports }) {
+        $arg.="$port->{port_id}|";
+        }
+        chop($arg);
         $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ \/\^$arg\$\/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id);
-        # todo
     }
-    elsif("remove" eq $type){
-        my ($tag,$id) = split(':',$arg);
-        $query=qq(DELETE FROM interfaceTraffic WHERE $tag=~ \/\^$id\$\/ );
-    }
-    print $debug $query;
+    else { return 1;}
+    return $query;
 }
 
 return 1;

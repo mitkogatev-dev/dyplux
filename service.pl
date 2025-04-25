@@ -79,7 +79,7 @@ sub add_dashboard_port{
     return 1;
 }
 sub show_dashboard_ports{
-    my $dashboard_id=$input->{dashboard_id};
+    my $dashboard_id=$input->{dashboard_id} || shift;
     my $dbh=init_db();
     my $ports=$dbh->selectall_arrayref(Query::get_dashboard_ports(),{Slice=>{}},$dashboard_id);
     $dbh->disconnect();
