@@ -37,16 +37,31 @@ sub query_builder{
     }
     elsif($input->{show_dashboard}){
         #todo: combine port_ids
-        my $arg="";
         my $ports=Service::show_dashboard_ports($input->{dashboard_id});
-        foreach my $port ( @{ $ports }) {
-        $arg.="$port->{port_id}|";
-        }
-        chop($arg);
+        # foreach my $port ( @{ $ports }) {
+        # $arg.="$port->{port_id}|";
+        # }
+        # chop($arg);
+        my $arg=&parse_port_ids($ports);
         $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ \/\^$arg\$\/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id);
     }
+    elsif($input->{quick_find}){
+        my $ports=Service::find_ports_by_name($input->{quick_find});
+        my $arg=&parse_port_ids($ports);
+        $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ \/\^$arg\$\/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id);
+    }
+
     else { return 1;}
     return $query;
+}
+sub parse_port_ids{
+    my $ports=shift;
+    my $ids="";
+    foreach my $port ( @{ $ports }) {
+        $ids.="$port->{port_id}|";
+        }
+        chop($ids);
+    return $ids;
 }
 
 return 1;

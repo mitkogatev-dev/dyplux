@@ -182,6 +182,7 @@ my $q=Influx_curl::query_builder(\%input);
         let argsArr=[graphType,ids]; //0-graphtype(device,port,dashboard);,
         let graphsArr = [];
         $('#div_g').empty();
+        console.log(ports);
     
         Promise.resolve(fetchData(argsArr))
             .then(data => {
