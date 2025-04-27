@@ -232,12 +232,12 @@ my $q=Influx_curl::query_builder(\%input);
     $graphjs.=q(
     function drawGraph(arr){
     // let deviceId=arr[0];
-    let graphType=arr[0];
-    let ids=arr[1];//
-    let ports=arr[2];//
-    let jsonData=arr[3];//
+    //let graphType=arr[0];
+    //let ids=arr[1];//
+    let ports=arr[0];//
+    let jsonData=arr[1];//
 
-    let argsArr=[graphType,ids]; //0-graphtype(device,port,dashboard);,
+    //let argsArr=[graphType,ids]; //0-graphtype(device,port,dashboard);,
     let graphsArr = [];
     $('#div_g').empty();
 

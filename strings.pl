@@ -133,9 +133,13 @@ sub device_list{
 sub grapher{
     my $result;
     my $ports=to_json(shift);
+    my $json_data;
+    if("js" ne $cfg->{influx_query_method}){
+        $json_data=Influx_curl::get_data($input);
+    }
     $result.="<div id='div_g'></div>";
     $result.=qq(<script>
-        drawGraph([$ports]);
+        drawGraph([$ports,$json_data]);
             </script>
     );
     return $result;

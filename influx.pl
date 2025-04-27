@@ -11,6 +11,15 @@ my $cfg=Cfg::get_config();
 my $debug=Cfg::get_debug();
 
 sub get_data{
+    my $input=shift;
+    my $influx_bucket=$cfg->{influx_bucket};
+    my $influx_url=$cfg->{influx_url};
+    my $influx_token=$cfg->{influx_token};
+    my $query=&query_builder($input);
+    my $cmd=qx(curl --silent --get $influx_url/query?db=$influx_bucket --header "Authorization: Token $influx_token" --data-urlencode "q=$query");
+    return $cmd;
+}
+sub get_data_old{
     my $device_id=shift;
     my $influx_bucket=$cfg->{influx_bucket};
     my $influx_url=$cfg->{influx_url};
