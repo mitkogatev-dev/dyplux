@@ -130,6 +130,16 @@ sub device_list{
     return $result;
 
 }
+sub grapher{
+    my $result;
+    my $ports=to_json(shift);
+    $result.="<div id='div_g'></div>";
+    $result.=qq(<script>
+        drawGraph([$ports]);
+            </script>
+    );
+    return $result;
+}
 sub dygraph{
     my $result;
     my $device_id=shift;
