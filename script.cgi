@@ -131,31 +131,19 @@ if($cfg->{influx_query_method} && "js" eq $cfg->{influx_query_method}){
 # my $q=Influx_curl::query_builder("device",$input{device_id});
 my $q=Influx_curl::query_builder(\%input);
  $graphjs.=qq( 
-    function buildQuery(argsArr) {
+    function buildQuery() {
     let host = "$cfg->{influx_url}";
     const db='$cfg->{influx_bucket}';
     let query="$q";
  );
  $graphjs.=q(
-        let type=argsArr[0];
-        //let query="";
-        // if ("device" == type){
-        //     query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE device_id=~ /^${argsArr[1]}$/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id`;   
-        // }
-        // else if("port" == type){
-        //     query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ /^${argsArr[1]}$/  GROUP BY device_id,port_id`; 
-        // }
-        // else if("dashboard" == type){
-        //     console.log("TODO:dashboard");
-        //     query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ /^${argsArr[1]}$/  AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id`; 
-        // }
         return (encodeURI(`${host}query?db=${db}&q=${query}`));
     }
  );
 #  my $q=Influx_curl::query_builder();
  $graphjs.=qq(
-    const fetchData = (argsArr) => {
-        const query = buildQuery(argsArr);
+    const fetchData = () => {
+        const query = buildQuery();
         return fetch(query, {
             credentials: "include", headers: {
                 Authorization: "Token $cfg->{influx_token}",
@@ -169,22 +157,23 @@ my $q=Influx_curl::query_builder(\%input);
             })
             .then(response => response.json())
             .then(parsedResponse => {
-                return parse(parsedResponse,argsArr);//todo
+                return parse(parsedResponse);//todo
             })
             .catch(error => console.log(error));
     }
  );
  $graphjs.=q(
-    function drawGraph(arr){
-        let graphType=arr[0];
-        let ids=arr[1];//
-        let ports=arr[2];//
-        let argsArr=[graphType,ids]; //0-graphtype(device,port,dashboard);,
+    function drawGraph(args){
+        //let graphType=arr[0];
+        //let ids=arr[1];//
+        //let ports=arr[2];//
+        //let argsArr=[graphType,ids]; //0-graphtype(device,port,dashboard);,
+        let ports = args[0];
         let graphsArr = [];
         $('#div_g').empty();
         console.log(ports);
     
-        Promise.resolve(fetchData(argsArr))
+        Promise.resolve(fetchData())
             .then(data => {
                 console.log(data);
         for (let i in data) {

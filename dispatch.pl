@@ -4,14 +4,15 @@ use strict;
 use FindBin 1.51 qw( $RealBin );
 use lib $RealBin;
 my $dir=$RealBin;
-my $debugFile = "$dir/debug.log";
+# my $debugFile = "$dir/debug.log";
 # open (my $debug,">>", $debugFile) or die $!;
 # my ($input)=\%main::input;
 
 package Dispatch;
 use Data::Dumper qw( Dumper );
 my ($input)=\%main::input;
-
+my $cfg=Cfg::get_config();
+my $debug=Cfg::get_debug();
 
 sub get_dev{
     my $devices=Service::get_devices();
@@ -78,13 +79,13 @@ sub show_dashboard_graphs{
     if(!$ports || scalar @{ $ports } < 1){
         return "no ports found";
     }
-    my $str="";
-    foreach my $port ( @{ $ports }) {
-        $str.="$port->{port_id}|";
-    }
-    chop($str);
+    # my $str="";
+    # foreach my $port ( @{ $ports }) {
+        # $str.="$port->{port_id}|";
+    # }
+    # chop($str);
     # return $str;
-    return Strings::dashboard_graphs($str,$ports);
+    return Strings::dashboard_graphs($ports);
 
 }
 sub threshold{

@@ -28,7 +28,7 @@ sub get_data{
 sub query_builder{
     my $input=shift;
     my $query;
-    print $debug Dumper($input);
+    # print $debug Dumper($input);
     if($input->{show_device_graphs}){
         $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE device_id=~ \/\^$input->{device_id}\$\/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id);
     }
@@ -36,12 +36,7 @@ sub query_builder{
         $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ \/\^$input->{port_id}\$\/ GROUP BY device_id,port_id);
     }
     elsif($input->{show_dashboard}){
-        #todo: combine port_ids
         my $ports=Service::show_dashboard_ports($input->{dashboard_id});
-        # foreach my $port ( @{ $ports }) {
-        # $arg.="$port->{port_id}|";
-        # }
-        # chop($arg);
         my $arg=&parse_port_ids($ports);
         $query=qq(SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ \/\^$arg\$\/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id);
     }
