@@ -7,6 +7,7 @@ package Strings;
 use Data::Dumper qw( Dumper );
 use JSON;
 my $cfg=Cfg::get_config();
+my $debug=Cfg::get_debug();
 
 # use Encode qw(encode_utf8);
 
@@ -158,6 +159,7 @@ sub port_details{
     my $result;
     # my $port_id=shift;
     # my $ports=to_json(shift);
+    # print $debug Dumper($input);
     my $ports=shift;
     my $port=@$ports[0];
     my $ports_json=to_json($ports);

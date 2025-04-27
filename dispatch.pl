@@ -79,14 +79,7 @@ sub show_dashboard_graphs{
     if(!$ports || scalar @{ $ports } < 1){
         return "no ports found";
     }
-    # my $str="";
-    # foreach my $port ( @{ $ports }) {
-        # $str.="$port->{port_id}|";
-    # }
-    # chop($str);
-    # return $str;
     return Strings::dashboard_graphs($ports);
-
 }
 sub threshold{
     return Strings::port_thresh(Service::get_port_thresholds($input->{port_id}));
