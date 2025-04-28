@@ -144,48 +144,11 @@ sub grapher{
     );
     return $result;
 }
-sub dygraph{
-    my $result;
-    my $device_id=shift;
-    my $ports=to_json(shift);
-    my $json;
-    if("js" ne $cfg->{influx_query_method}){
-    $json=Influx_curl::get_data($device_id);
-    }
-    $result.="<h4>showing graphs for: $input->{dev_name}</h4>";
-    $result.=&graph_filters();
-    $result.="<div id='div_g'></div>";
-    $result.=qq(<script>
-        drawGraph([$ports,$json]);
-            </script>
-            
-    );
-    return $result;
-}
 sub graph_filters{
     my $result="";
     $result.="<div>filter max traffic > <input type='text' id='filterMax' value='0M'/> <button onclick='filterMax()'>filter</button></div>";
     $result.="<div>filter by title <input type='text' id='filterTitle' value=''/> <button onclick='filterByTitle()'>filter</button></div>";
     $result.="<div><button onclick='resetFilter()'>reset filters</button></div>";
-    return $result;
-}
-sub port_details{
-    my $result;
-    # my $port_id=shift;
-    # my $ports=to_json(shift);
-    # print $debug Dumper($input);
-    my $ports=shift;
-    my $port=@$ports[0];
-    my $ports_json=to_json($ports);
-    $result.="<h4>showing details for port $port->{port_name} todo</h4>";
-    $result.="<div id='div_g'></div>";
-    $result.=qq(<script>
-    
-        drawGraph([$ports_json]);
-            
-            </script>
-            
-    );
     return $result;
 }
 sub dev_created{
@@ -278,21 +241,6 @@ sub dashboard_list_ports{
         </div> 
         </form>);
     }
-    return $result;
-}
-sub dashboard_graphs{
-    my $result;
-    # my $port_ids=to_json(shift);#string
-    my $ports=to_json(shift);
-    # $result.=$port_ids;
-    $result.="<div id='div_g'></div>";
-    $result.=qq(<script>
-    
-        drawGraph([$ports]);
-            
-            </script>
-            
-    );
     return $result;
 }
 sub dashboard_edit{
