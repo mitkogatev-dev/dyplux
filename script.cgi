@@ -35,6 +35,9 @@ my $output="";
 # if ($ref !~ /router.cgi/gi){ print "bye"; exit 0;}
 #
 require "$dir/config.pl";
+require "$dir/influx.pl";
+require "$dir/service.pl";
+require "$dir/query.pl";
 my $cfg=Cfg::get_config();
 my $graphjs="";
 
@@ -123,43 +126,76 @@ $graphjs=q(
         return data;
     }
 );
+
+my $grdata=q(
+    for (let i in data) {
+                let idx = data[i][0];
+                let minMax = data[i][2];
+                let currPort = ports.find(port => port.port_id == idx);
+                if (!currPort) continue;
+                checkElem(idx);//create graph container if none
+                $('#foo' + idx).html(`minIn: <b>${kmgFormat(minMax.minIn)} </b> maxIn: <b><span class='max'>${kmgFormat(minMax.maxIn)}</span></b> minOut: <b>${kmgFormat(minMax.minOut)}</b> maxOut: <b><span class='max'>${kmgFormat(minMax.maxOut)}</span></b>`);
+                let title = currPort.device_name + " - " + currPort.ifname + " -- " + currPort.port_name;
+                graphsArr.push(
+                    new Dygraph(
+                        document.getElementById(idx),
+                        data[i][1],
+                        {
+                            labelsKMB: true, //using dygraph-combined.js with replaced string "B" to "G"
+                            legend: 'follow',
+                            showRangeSelector: true,
+                            interactionModel: {},
+                            drawPoints: false,
+                            stepPlot: true,
+                            ylabel: 'bits/second',
+                            fillGraph: true,
+                            highlightCircleSize: 5,
+                            title: title,
+                            titleHeight: 20,
+                            height: 300,
+                            labels: ['Time', 'IN', 'OUT'],
+                            underlayCallback: function (canvas, area, g) {
+                                function highlightYaxesWithColour(y_start, y_end, color) {
+                                    let canvas_bottom = g.toDomYCoord(y_start);
+                                    let canvas_top = g.toDomYCoord(y_end);
+                                    let canvas_height = canvas_top - canvas_bottom;
+                                    canvas.fillStyle = color;
+                                    canvas.fillRect(area.x, canvas_bottom, area.w, canvas_height);
+                                }
+
+                                let color1 = "rgba(255, 255, 0, 1.0)";//>=100M
+                                let color2 = "rgba(255, 150, 0, 1.0)";//>1G
+                                let color3 = "rgba(255, 0, 0, 1.0)"; //<=9Mbps
+
+                                highlightYaxesWithColour(100000000, 100000000 * 10, color1);
+                                highlightYaxesWithColour(100000000 * 10, 100000000 * 100 * 100, color2);
+                                highlightYaxesWithColour(0, 9000000, color3);
+                            }
+                        })
+
+                )
+            }
+);
 ############## graph.js with js fetch ########
 if($cfg->{influx_query_method} && "js" eq $cfg->{influx_query_method}){
+my $q=Influx_curl::query_builder(\%input);
  $graphjs.=qq( 
-    function buildQuery(argsArr) {
+    function buildQuery() {
     let host = "$cfg->{influx_url}";
     const db='$cfg->{influx_bucket}';
-);
-$graphjs.=q(
-        let type=argsArr[0];
-        let query="";
-        if ("device" == type){
-            query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE device_id=~ /^${argsArr[1]}$/ AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id`;   
-        }
-        else if("port" == type){
-            query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ /^${argsArr[1]}$/  GROUP BY device_id,port_id`; 
-        }
-        else if("dashboard" == type){
-            console.log("TODO:dashboard");
-            query=`SELECT intraffic,outtraffic FROM interfaceTraffic WHERE port_id=~ /^${argsArr[1]}$/  AND (time >= now() - 48h and time <= now()) GROUP BY device_id,port_id`; 
-        }
+    let query="$q";
+ );
+ $graphjs.=q(
         return (encodeURI(`${host}query?db=${db}&q=${query}`));
     }
-);
-$graphjs.=qq(
-    const fetchData = (argsArr) => {
-    
-        const query = buildQuery(argsArr);
-        
-    
+ );
+ $graphjs.=qq(
+    const fetchData = () => {
+        const query = buildQuery();
         return fetch(query, {
-            
             credentials: "include", headers: {
-
                 Authorization: "Token $cfg->{influx_token}",
-
             },
-            
         })
             .then(response => {
                 if (response.status !== 200) {
@@ -169,143 +205,36 @@ $graphjs.=qq(
             })
             .then(response => response.json())
             .then(parsedResponse => {
-                return parse(parsedResponse,argsArr);//todo
+                return parse(parsedResponse);//todo
             })
             .catch(error => console.log(error));
     }
-);
-$graphjs.=q(
-    function drawGraph(arr){
-        let graphType=arr[0];
-        let ids=arr[1];//
-        let ports=arr[2];//
-        let argsArr=[graphType,ids]; //0-graphtype(device,port,dashboard);,
+ );
+ $graphjs.=qq(
+    function drawGraph(args){
+        let ports = args[0];
         let graphsArr = [];
-        $('#div_g').empty();
+        \$('#div_g').empty();
     
-        Promise.resolve(fetchData(argsArr))
+        Promise.resolve(fetchData())
             .then(data => {
-                console.log(data);
-        for (let i in data) {
-            let idx = data[i][0];
-            let minMax=data[i][2];
-            let currPort=ports.find(port => port.port_id == idx);
-                if(!currPort) continue;
-            checkElem(idx);//create graph container if none
-            $('#foo'+idx).html(`minIn: <b>${kmgFormat(minMax.minIn)} </b> maxIn: <b><span class='max'>${kmgFormat(minMax.maxIn)}</span></b> minOut: <b>${kmgFormat(minMax.minOut)}</b> maxOut: <b><span class='max'>${kmgFormat(minMax.maxOut)}</span></b>`);
-            let title=currPort.device_name+" - "+currPort.ifname+" -- "+currPort.port_name;
-    graphsArr.push(
-        new Dygraph(
-            document.getElementById(idx),
-            data[i][1],
-            {
-            labelsKMB: true, //using dygraph-combined.js with replaced string "B" to "G"
-              legend: 'follow',
-            showRangeSelector:true,
-            interactionModel: {},
-              drawPoints: false,
-              stepPlot: true,
-              ylabel: 'bits/second',
-              fillGraph: true,
-              highlightCircleSize:5,
-              title: title,
-              titleHeight:20,
-              height:300,
-              labels: ['Time', 'IN', 'OUT'],
-              underlayCallback: function(canvas, area, g) {
-                function highlightYaxesWithColour(y_start, y_end, color) {
-                  let canvas_bottom = g.toDomYCoord(y_start);
-                  let canvas_top = g.toDomYCoord(y_end);
-                  let canvas_height = canvas_top - canvas_bottom;
-                  canvas.fillStyle = color;
-                  canvas.fillRect(area.x, canvas_bottom, area.w, canvas_height);
-                }
-                      
-                let color1 = "rgba(255, 255, 0, 1.0)";//>=100M
-                let color2 = "rgba(255, 150, 0, 1.0)";//>1G
-                let color3 = "rgba(255, 0, 0, 1.0)"; //<=9Mbps
-                
-                highlightYaxesWithColour(100000000,100000000*10,color1);
-                highlightYaxesWithColour(100000000*10,100000000*100*100,color2);
-                highlightYaxesWithColour(0,9000000,color3);
-              }
-              ///////
-            })
-    
-        )}
+                $grdata
         resizeIframe(parent.document.getElementById('frame'));
     
     });
     }
-);
+ );
 }else{ #curl
-    $graphjs.=q(
-    function drawGraph(arr){
-    // let deviceId=arr[0];
-    let graphType=arr[0];
-    let ids=arr[1];//
-    let ports=arr[2];//
-    let jsonData=arr[3];//
+    $graphjs.=qq(
+    function drawGraph(args){
+        let ports=args[0];//
+        let jsonData=args[1];//
+        let graphsArr = [];
+        \$('#div_g').empty();
 
-    let argsArr=[graphType,ids]; //0-graphtype(device,port,dashboard);,
-    let graphsArr = [];
-    $('#div_g').empty();
-
-    let data=parse(jsonData);
-            console.log(data);
-    for (let i in data) {
-        let idx = data[i][0];
-        let minMax=data[i][2];
-        // console.log(idx);
-        let currPort=ports.find(port => port.port_id == idx);
-            if(!currPort) continue;
-        checkElem(idx);//create graph container if none
-        $('#foo'+idx).html(`minIn: <b>${kmgFormat(minMax.minIn)} </b> maxIn: <b><span class='max'>${kmgFormat(minMax.maxIn)}</span></b> minOut: <b>${kmgFormat(minMax.minOut)}</b> maxOut: <b><span class='max'>${kmgFormat(minMax.maxOut)}</span></b>`);
-        let title=currPort.device_name+" - "+currPort.ifname+" -- "+currPort.port_name;
-    graphsArr.push(
-    new Dygraph(
-        document.getElementById(idx),
-        data[i][1],
-        {
-        
-        labelsKMB: true, //using dygraph-combined.js with replaced string "B" to "G"
-        // labelsKMG2: true,
-          legend: 'follow',
-        showRangeSelector:true,
-        interactionModel: {},
-          drawPoints: false,
-          stepPlot: true,
-          ylabel: 'bits/second',
-          fillGraph: true,
-          highlightCircleSize:5,
-          title: title,
-          titleHeight:20,
-          height:300,
-          labels: ['Time', 'IN', 'OUT'],
-          ///////
-          underlayCallback: function(canvas, area, g) {
-            function highlightYaxesWithColour(y_start, y_end, color) {
-              let canvas_bottom = g.toDomYCoord(y_start);
-              let canvas_top = g.toDomYCoord(y_end);
-              let canvas_height = canvas_top - canvas_bottom;
-
-              canvas.fillStyle = color;
-              canvas.fillRect(area.x, canvas_bottom, area.w, canvas_height);
-            }
-                  
-       		let color1 = "rgba(255, 255, 0, 1.0)";//>=100M
-            let color2 = "rgba(255, 150, 0, 1.0)";//>1G
-			let color3 = "rgba(255, 0, 0, 1.0)"; //<=9Mbps
-            
-            highlightYaxesWithColour(100000000,100000000*10,color1);
-            highlightYaxesWithColour(100000000*10,100000000*100*100,color2);
-            highlightYaxesWithColour(0,9000000,color3);
-          }
-          ///////
-        })
-
-    )}
-}
+        let data=parse(jsonData);
+        $grdata
+        }
     );
 }
 
@@ -321,6 +250,6 @@ $output.=qq(
 
 print $output;
 ###debug
-# print "/**".Dumper($cgi)."*/";
+print "/**".Dumper($cgi)."*/";
 # print "/**".Dumper(%ENV)."*/";
 # print "/**".Dumper($cfg)."*/";

@@ -4,14 +4,15 @@ use strict;
 use FindBin 1.51 qw( $RealBin );
 use lib $RealBin;
 my $dir=$RealBin;
-my $debugFile = "$dir/debug.log";
+# my $debugFile = "$dir/debug.log";
 # open (my $debug,">>", $debugFile) or die $!;
 # my ($input)=\%main::input;
 
 package Dispatch;
 use Data::Dumper qw( Dumper );
 my ($input)=\%main::input;
-
+my $cfg=Cfg::get_config();
+my $debug=Cfg::get_debug();
 
 sub get_dev{
     my $devices=Service::get_devices();
@@ -65,27 +66,27 @@ sub get_port_formdata{
 }
 sub show_graphs{
     my $device_id=shift;
-    return Strings::dygraph($device_id,Service::get_ports_db());
+    my $title=qq(<h4>Showing graphs for device $input->{dev_name}</h4>);
+    return $title . Strings::grapher(Service::get_ports_db());
 }
 sub port_detail{
-    # return "$input->{port_id}";
-    # return Strings::port_details($input->{port_id},Service::get_port_data($input->{port_id})) . &threshold() . "<h2>Alerts:</h2> TODO!!!";
-    my $port=Service::get_port_data($input->{port_id});
-    return Strings::port_details($port) . &threshold() . &show_alerts();
+    my $ports=Service::get_port_data($input->{port_id});
+    my $port=@$ports[0];
+    my $title=qq(<h4>Details for port: $port->{device_name} $port->{ifname}($port->{port_name})</h4>);
+    return $title . Strings::grapher($ports) . &threshold() . &show_alerts();
 }
 sub show_dashboard_graphs{
     my $ports=shift;
     if(!$ports || scalar @{ $ports } < 1){
         return "no ports found";
     }
-    my $str="";
-    foreach my $port ( @{ $ports }) {
-        $str.="$port->{port_id}|";
+    my $title=qq(<h4>Showing graphs for );
+    if($input->{quick_find}){
+        $title.=qq(find name ~ $input->{quick_find} </h4>);
+    }else{
+        $title.=qq(dashboard $input->{dashboard_name}</h4>);
     }
-    chop($str);
-    # return $str;
-    return Strings::dashboard_graphs($str,$ports);
-
+    return $title . Strings::grapher($ports);
 }
 sub threshold{
     return Strings::port_thresh(Service::get_port_thresholds($input->{port_id}));

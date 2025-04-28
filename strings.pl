@@ -7,6 +7,7 @@ package Strings;
 use Data::Dumper qw( Dumper );
 use JSON;
 my $cfg=Cfg::get_config();
+my $debug=Cfg::get_debug();
 
 # use Encode qw(encode_utf8);
 
@@ -114,7 +115,7 @@ sub device_list{
         $result.="<form action='' method='post'><tr>
         <td>$device->{name}</td>
         <td>$device->{ip}</td>
-        <td><input type='submit' name='show_grpahs' value='show graphs' onclick='printMsg();'></td>
+        <td><input type='submit' name='show_device_graphs' value='show graphs' onclick='printMsg();'></td>
         <td><input type='submit' name='edit_dev' value='edit'></td>
         <td><input type='submit' name='edit_ports' value='edit interfaces'></td>
         <td>
@@ -129,49 +130,25 @@ sub device_list{
     return $result;
 
 }
-sub dygraph{
+sub grapher{
     my $result;
-    # my $data=encode_json(shift);
-    my $device_id=shift;
-    # my $ports=encode_json(shift);
     my $ports=to_json(shift);
-    my $json;
+    my $json_data;
     if("js" ne $cfg->{influx_query_method}){
-    $json=Influx_curl::get_data($device_id);
+        $json_data=Influx_curl::get_data($input);
     }
-    $result.="<h4>showing graphs for: $input->{dev_name}</h4>";
-    $result.="<div>filter max traffic > <input type='text' id='filterMax' value='0M'/> <button onclick='filterMax()'>filter</button></div>";
-    $result.="<div>filter by title <input type='text' id='filterTitle' value=''/> <button onclick='filterByTitle()'>filter</button></div>";
-    $result.="<div><button onclick='resetFilter()'>reset filters</button></div>";
-
     $result.="<div id='div_g'></div>";
-    # $result.="<script>let data=$data;console.log(data)</script>";
-
     $result.=qq(<script>
-    
-        drawGraph(["device",$device_id,$ports,$json]);
-            
+        drawGraph([$ports,$json_data]);
             </script>
-            
     );
     return $result;
 }
-sub port_details{
-    my $result;
-    # my $port_id=shift;
-    # my $ports=to_json(shift);
-    my $ports=shift;
-    my $port_id=@$ports[0]->{port_id};
-    my $ports_json=to_json($ports);
-    $result.="<h4>showing details for port $port_id todo</h4>";
-    $result.="<div id='div_g'></div>";
-    $result.=qq(<script>
-    
-        drawGraph(["port",$port_id,$ports_json]);
-            
-            </script>
-            
-    );
+sub graph_filters{
+    my $result="";
+    $result.="<div>filter max traffic > <input type='text' id='filterMax' value='0M'/> <button onclick='filterMax()'>filter</button></div>";
+    $result.="<div>filter by title <input type='text' id='filterTitle' value=''/> <button onclick='filterByTitle()'>filter</button></div>";
+    $result.="<div><button onclick='resetFilter()'>reset filters</button></div>";
     return $result;
 }
 sub dev_created{
@@ -223,6 +200,7 @@ sub dashboard_list{
         $result.=qq(<tr>
             <form action="" method="post">
             <input type="hidden" name="dashboard_id" value="$dashboard->{dashboard_id}"/>
+            <input type="hidden" name="dashboard_name" value="$dashboard->{dashboard_name}"/>
             <td>$dashboard->{dashboard_name}</td>
             <td><input type="submit" name="show_dashboard" value="show"/></td>
             <td><input type="submit" name="edit_dashboard" value="edit" /></td>
@@ -263,21 +241,6 @@ sub dashboard_list_ports{
         </div> 
         </form>);
     }
-    return $result;
-}
-sub dashboard_graphs{
-    my $result;
-    my $port_ids=to_json(shift);#string
-    my $ports=to_json(shift);
-    $result.=$port_ids;
-    $result.="<div id='div_g'></div>";
-    $result.=qq(<script>
-    
-        drawGraph(["dashboard",$port_ids,$ports]);
-            
-            </script>
-            
-    );
     return $result;
 }
 sub dashboard_edit{

@@ -18,9 +18,12 @@ $cgi->charset('utf-8');
 $CGI::LIST_CONTEXT_WARN = 0 ;
 my @params=$cgi->param();
 my $request_method=$cgi->request_method();
+my $input_str="";
 
 for my $key ( $cgi->param() ) {
  $input{$key} = $cgi->param($key);
+ #workaround to pass inputs to other cgi
+ $input_str.="$key=".$cgi->param($key)."&";
 }
 my $html=""; 
 require "$dir/config.pl";
@@ -45,18 +48,18 @@ elsif($input{add_dev} || $input{edit_dev}){
 elsif($input{submit_device}){
     $html=Service::add_device();
 }
-elsif($input{test_snmp}){
-    $html= Snmp::test_device($input{ip},$input{community});
-}
 elsif($input{remove_device}){
     $html=Dispatch::rem_dev();
-}
-elsif($input{index_ports}){
-    $html=Service::get_ports($input{ip},$input{community});
 }
 elsif($input{show_devices}){
     # $html=Service::get_devices();
     $html=Dispatch::get_dev();
+}
+elsif($input{test_snmp}){
+    $html= Snmp::test_device($input{ip},$input{community});
+}
+elsif($input{index_ports}){
+    $html=Service::get_ports($input{ip},$input{community});
 }
 elsif($input{save_ports}){
     #todo
@@ -64,20 +67,26 @@ elsif($input{save_ports}){
     # $html=Service::get_port_formdata($cgi);#name of sub???
     $html=Dispatch::get_port_formdata($cgi);
 }
+elsif($input{edit_ports}){
+    # $html=Service::get_ports_db();
+    $html=Dispatch::show_ports();
+}
 elsif($input{del_ports}){
     # $html=Dispatch::rem_selected_ports($cgi);
     $html=Dispatch::get_port_formdata($cgi);
 
 }
-elsif($input{show_grpahs}){
+elsif($input{show_device_graphs}){
      $html=Dispatch::show_graphs($input{device_id});
 }
 elsif($input{single_graph}){
     $html=Dispatch::port_detail();
 }
-elsif($input{edit_ports}){
-    # $html=Service::get_ports_db();
-    $html=Dispatch::show_ports();
+elsif($input{show_dashboard}){
+    # $html="TODO!!! show port grapsh here";
+    my $ports=Service::show_dashboard_ports();
+    # $html.=Strings::dashboard_list_ports($ports);
+    $html=Dispatch::show_dashboard_graphs($ports);
 }
 elsif($input{thresholds}){
     $html=Dispatch::threshold();
@@ -97,13 +106,6 @@ elsif($input{dashboards}){
 }
 elsif($input{add_dashboard}){
     $html=Service::add_dashboard();
-}
-elsif($input{show_dashboard}){
-    $html="TODO!!! show port grapsh here";
-    my $ports=Service::show_dashboard_ports();
-    $html.=Strings::dashboard_list_ports($ports);
-    $html.=Dispatch::show_dashboard_graphs($ports);
-
 }
 elsif($input{edit_dashboard}){
     $html=Strings::dashboard_edit();
@@ -170,7 +172,7 @@ print qq(
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="css/style.css">
     <script src='js/script.js'></script>
-   <script src='script.cgi?test=me&smthing=other'></script>
+   <script src='script.cgi?$input_str'></script>
     $js
     <title>Frame</title>
 </head>
