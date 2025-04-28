@@ -237,6 +237,7 @@ sub dashboard_list{
         $result.=qq(<tr>
             <form action="" method="post">
             <input type="hidden" name="dashboard_id" value="$dashboard->{dashboard_id}"/>
+            <input type="hidden" name="dashboard_name" value="$dashboard->{dashboard_name}"/>
             <td>$dashboard->{dashboard_name}</td>
             <td><input type="submit" name="show_dashboard" value="show"/></td>
             <td><input type="submit" name="edit_dashboard" value="edit" /></td>

@@ -84,8 +84,14 @@ sub show_dashboard_graphs{
     if(!$ports || scalar @{ $ports } < 1){
         return "no ports found";
     }
+    my $title=qq(<h4>Showing graphs for );
+    if($input->{quick_find}){
+        $title.=qq(find name ~ $input->{quick_find} </h4>);
+    }else{
+        $title.=qq(dashboard $input->{dashboard_name}</h4>);
+    }
     # return Strings::dashboard_graphs($ports);
-    return Strings::grapher($ports);
+    return $title . Strings::grapher($ports);
 }
 sub threshold{
     return Strings::port_thresh(Service::get_port_thresholds($input->{port_id}));
