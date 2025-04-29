@@ -157,7 +157,7 @@ my $ping=$session->get_table($sys_oid) || die $session->error ;
 ##calculates per device time diff
 my $currts=time(); #get current run timestamp
 my $greptime="grep ^$device->{device_id}--ts= $prev_file";
-my ($na,$prevts)=split('=',qx($greptime));
+my ($prevts)=(split('=',qx($greptime)))[1] || 0;
 # print "prev=$prevts\n";
 # my $time=$prevts+0-$currts;
 my $time=$currts-eval($prevts);
@@ -171,14 +171,16 @@ my $out_req="$out_oid.$ifindex";
 
 my $result=$session->get_request($in_req,$out_req);
 #* parse results
-my $in_val=$result->{$in_req};
-my $out_val=$result->{$out_req};
+my $in_val=$result->{$in_req} || 0;
+my $out_val=$result->{$out_req} || 0;
 #? move to separate sub calculate()??
 
 #* get prev data by port_id
 my $grep="grep port_id=$port->{port_id}, $prev_file"; #throws err firtst run as file doesn't exists
 #* assign vals
 my ($port_id,$prev_in,$prev_out)=split(',',qx($grep));
+$prev_in = 0 if !$prev_in;
+$prev_out = 0 if !$prev_out;
 #* save to fh
 print $current_fh "port_id=$port->{port_id},$in_val,$out_val\n";
 #
