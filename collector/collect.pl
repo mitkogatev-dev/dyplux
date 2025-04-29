@@ -137,17 +137,23 @@ if (scalar @{$device->{ports}} == 0){return;}
 
 my $in_oid="1.3.6.1.2.1.31.1.1.1.6";
 my $out_oid="1.3.6.1.2.1.31.1.1.1.10";
+my $sys_oid="1.3.6.1.2.1.1.1";
 
 #* open sesson to device
 my ($session, $error) = Net::SNMP->session(
    -hostname    => $device->{ip} || 'localhost',
    -community   => $device->{community} || 'public',
    -version     => 'snmpv2c',
+   -timeout     => 1,
 );
  if (!defined $session) {
    printf "ERROR: %s.\n", $error;
    exit 1;
 }
+#check if session is alive
+#todo: can rise alert device is offline here
+my $ping=$session->get_table($sys_oid) || die $session->error ;
+
 ##calculates per device time diff
 my $currts=time(); #get current run timestamp
 my $greptime="grep ^$device->{device_id}--ts= $prev_file";
