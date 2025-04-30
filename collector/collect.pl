@@ -154,9 +154,8 @@ my ($session, $error) = Net::SNMP->session(
    exit 1;
 }
 #check if session is alive
-#todo: can rise alert device is offline here
 my $ping=$session->get_table($sys_oid); #|| die $session->error ;
-
+#
 my $currts=time(); #get current run timestamp
 my $greptime="grep ^$device->{device_id}--ts= $prev_file";
 #get prev timestamp
@@ -184,9 +183,6 @@ $prev_out = -1 if !$prev_out;
 #* save current vals to fh
 print $current_fh "port_id=$port->{port_id},$in_val,$out_val\n";
 #
-#### calculate time
-#
-
 #* if prev data found we can calculate current traffic
 if($port_id){
 # *** TODO: check for empty values
@@ -198,27 +194,30 @@ if($prev_in == -1 || $prev_out == -1 || $in_val == -1 || $out_val == -1){
 } 
 
 #* export data
-#? print to STDOUT ? replace with FH?
 print $insert_fh "interfaceTraffic,device_id=$device->{device_id},port_id=$port->{port_id} intraffic=$trafficIn,outtraffic=$trafficOut\n";                                                                                                                                        
-
-#** !!!
-#can rise alert here
-if ($device_has_thresholds){ #if device has thresh
-#  my $thresh = ( @{ $device->{thresholds} })->{port_id} == $port_id;
+#thresholds 
+if ($device_has_thresholds && $ping ){ #if device has thresh and is online
+# 
 my ($port_thresh) = grep { $port->{port_id} == $_->{port_id} } @{$device->{thresholds}};
 if($port_thresh){ 
-# print "##########\n".$thresh->{max_in}."\n########\n";
 threshold_check($port_thresh,$trafficIn,$trafficOut);
-
 }
 }
-
 
 #threshold_check($port,$trafficIn,$trafficOut);
 }
 
 }
-
+#rise device offline allert
+# !!! requires db structure change
+## TODO!!!
+#add alert_type (id=5) device offline
+#add coumn device id in alerts tbl
+if (!$ping){
+   #
+   ##print $alerts_fh "null,5,0,$device->{device_id}\n";
+   print  "null,5,0,$device->{device_id}\n";
+}
 $session->close();
 
 }
