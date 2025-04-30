@@ -137,43 +137,48 @@ if (scalar @{$device->{ports}} == 0){return;}
 
 my $in_oid="1.3.6.1.2.1.31.1.1.1.6";
 my $out_oid="1.3.6.1.2.1.31.1.1.1.10";
+my $sys_oid="1.3.6.1.2.1.1.1";
 
 #* open sesson to device
 my ($session, $error) = Net::SNMP->session(
    -hostname    => $device->{ip} || 'localhost',
    -community   => $device->{community} || 'public',
    -version     => 'snmpv2c',
+   -timeout     => 1,
 );
  if (!defined $session) {
    printf "ERROR: %s.\n", $error;
    exit 1;
 }
-##calculates per device time diff
+#check if session is alive
+#todo: can rise alert device is offline here
+my $ping=$session->get_table($sys_oid); #|| die $session->error ;
+
 my $currts=time(); #get current run timestamp
 my $greptime="grep ^$device->{device_id}--ts= $prev_file";
-my ($na,$prevts)=split('=',qx($greptime));
-# print "prev=$prevts\n";
-# my $time=$prevts+0-$currts;
+#get prev timestamp
+my ($prevts)=(split('=',qx($greptime)))[1] || 0;
+#calculate time diff
 my $time=$currts-eval($prevts);
-# print "diff=$time\n\n";
+#
 print $current_fh "$device->{device_id}--ts=$currts\n";
-
+#
 foreach my $port ( @{ $device->{ports} }) {
 my $ifindex=$port->{ifindex};
 my $in_req="$in_oid.$ifindex";
 my $out_req="$out_oid.$ifindex";
 
-my $result=$session->get_request($in_req,$out_req);
-#* parse results
-my $in_val=$result->{$in_req};
-my $out_val=$result->{$out_req};
-#? move to separate sub calculate()??
-
-#* get prev data by port_id
+#get current vals
+my $result=$session->get_request($in_req,$out_req) if $ping;
+my $in_val=$result->{$in_req} || -1;
+my $out_val=$result->{$out_req} || -1;
+#
+# get prev data by port_id
 my $grep="grep port_id=$port->{port_id}, $prev_file"; #throws err firtst run as file doesn't exists
-#* assign vals
 my ($port_id,$prev_in,$prev_out)=split(',',qx($grep));
-#* save to fh
+$prev_in = -1 if !$prev_in;
+$prev_out = -1 if !$prev_out;
+#* save current vals to fh
 print $current_fh "port_id=$port->{port_id},$in_val,$out_val\n";
 #
 #### calculate time
@@ -183,7 +188,11 @@ print $current_fh "port_id=$port->{port_id},$in_val,$out_val\n";
 if($port_id){
 # *** TODO: check for empty values
 my $trafficIn=((eval($in_val-$prev_in)*8)/$time);                                                                                                                                            
-my $trafficOut=((eval($out_val-$prev_out)*8)/$time); 
+my $trafficOut=((eval($out_val-$prev_out)*8)/$time);
+if($prev_in == -1 || $prev_out == -1 || $in_val == -1 || $out_val == -1){
+   $trafficIn=0;
+   $trafficOut=0;
+} 
 
 #* export data
 #? print to STDOUT ? replace with FH?
