@@ -134,7 +134,10 @@ my ($device)=shift;
 
 #* no ports no session
 if (scalar @{$device->{ports}} == 0){return;}
-
+my $device_has_thresholds=0;
+if( scalar @{$device->{thresholds}} > 0) {
+   $device_has_thresholds=1;
+}
 my $in_oid="1.3.6.1.2.1.31.1.1.1.6";
 my $out_oid="1.3.6.1.2.1.31.1.1.1.10";
 my $sys_oid="1.3.6.1.2.1.1.1";
@@ -200,12 +203,12 @@ print $insert_fh "interfaceTraffic,device_id=$device->{device_id},port_id=$port-
 
 #** !!!
 #can rise alert here
-if (scalar @{$device->{thresholds}} > 0){ #if device has thresh
+if ($device_has_thresholds){ #if device has thresh
 #  my $thresh = ( @{ $device->{thresholds} })->{port_id} == $port_id;
-my ($thresh) = grep { $port->{port_id} == $_->{port_id} } @{$device->{thresholds}};
-if($thresh){ 
+my ($port_thresh) = grep { $port->{port_id} == $_->{port_id} } @{$device->{thresholds}};
+if($port_thresh){ 
 # print "##########\n".$thresh->{max_in}."\n########\n";
-threshold_check($thresh,$trafficIn,$trafficOut);
+threshold_check($port_thresh,$trafficIn,$trafficOut);
 
 }
 }
