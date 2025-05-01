@@ -59,10 +59,13 @@ my $qports="SELECT `port_id`,`ifindex` FROM `ports` WHERE device_id=?";
 my $qthresh="SELECT p.port_id,t.min_in,t.max_in,t.min_out,t.max_out FROM `ports` p JOIN thresholds t ON p.port_id=t.port_id WHERE p.device_id=?";
 my $qtrunc="TRUNCATE TABLE alerts_tmp;";
 my $qdisable_alert="UPDATE alerts a 
-LEFT JOIN alerts_tmp t ON (a.port_id=t.port_id AND a.alert_type_id=t.alert_type_id)
+LEFT JOIN alerts_tmp t ON (a.port_id=t.port_id AND a.device_id = t.device_id AND a.alert_type_id=t.alert_type_id)
 SET a.active=0 
-WHERE a.active AND t.port_id IS NULL;";
-my $qrise_alert="INSERT INTO `alerts`(`alert_type_id`, `port_id`) SELECT t.`alert_type_id`, t.`port_id` FROM alerts_tmp t LEFT JOIN alerts a ON (a.port_id=t.port_id AND a.alert_type_id=t.alert_type_id AND a.active) WHERE a.port_id IS NULL;";
+WHERE a.active AND (t.port_id IS NULL or t.device_id IS NULL);";
+my $qrise_alert="INSERT INTO `alerts`(`alert_type_id`,`device_id`, `port_id`) 
+SELECT t.`alert_type_id`,t.`device_id`, t.`port_id` FROM alerts_tmp t 
+LEFT JOIN alerts a ON (a.port_id=t.port_id AND a.device_id = t.device_id AND a.alert_type_id=t.alert_type_id AND a.active) 
+WHERE (a.port_id IS NULL OR a.device_id IS NULL);";
 foreach my $device ( @{ $devices }) {
 $device->{ports}=$dbh->selectall_arrayref($qports,{Slice=>{}},$device->{device_id} );
 $device->{thresholds}=$dbh->selectall_arrayref($qthresh,{Slice=>{}},$device->{device_id} );
@@ -114,7 +117,7 @@ $dbh=init_db();
 my $sth_trunc=$dbh->prepare($qtrunc);
 $sth_trunc->execute();
 #insert new tmp
-my $sqlsave=qx(mysql --skip-ssl=1 -h$cfg{sql_host} -u$cfg{sql_user} -p$cfg{sql_pass} -P$cfg{sql_port} --local-infile=1 -e "LOAD DATA LOCAL INFILE '$alerts_file' INTO TABLE $cfg{sql_db}.alerts_tmp FIELDS TERMINATED BY ',' (alert_id,alert_type_id,port_id)");
+my $sqlsave=qx(mysql --skip-ssl=1 -h$cfg{sql_host} -u$cfg{sql_user} -p$cfg{sql_pass} -P$cfg{sql_port} --local-infile=1 -e "LOAD DATA LOCAL INFILE '$alerts_file' INTO TABLE $cfg{sql_db}.alerts_tmp FIELDS TERMINATED BY ',' (alert_id,alert_type_id,device_id,port_id)");
 #
 my $sth_disable=$dbh->prepare($qdisable_alert);
 my $sth_rise=$dbh->prepare($qrise_alert);
@@ -200,29 +203,23 @@ if ($device_has_thresholds && $ping ){ #if device has thresh and is online
 # 
 my ($port_thresh) = grep { $port->{port_id} == $_->{port_id} } @{$device->{thresholds}};
 if($port_thresh){ 
-threshold_check($port_thresh,$trafficIn,$trafficOut);
+threshold_check($port_thresh,$device->{device_id},$trafficIn,$trafficOut);
 }
 }
 
-#threshold_check($port,$trafficIn,$trafficOut);
 }
 
 }
-#rise device offline allert
-# !!! requires db structure change
-## TODO!!!
-#add alert_type (id=5) device offline
-#add coumn device id in alerts tbl
+#rise device offline alert
 if (!$ping){
-   #
-   ##print $alerts_fh "null,5,0,$device->{device_id}\n";
-   print  "null,5,0,$device->{device_id}\n";
+   print $alerts_fh "null,5,$device->{device_id},0\n";
 }
 $session->close();
 
 }
 sub threshold_check{
    my $thresh=shift;
+   my $device_id=shift;
    my $traffic_in=shift;
    my $traffic_out=shift;
    my $min_in=eval($thresh->{min_in} +0) // -1;
@@ -232,16 +229,16 @@ sub threshold_check{
    #alert_type_id,port_id
    #alrt_type_ids: 1-oper changed, 2-admin changed, 3-min thresh, 4-max thresh
    if ($min_in > -1 && $traffic_in < $min_in){
-      print $alerts_fh "null,3,$thresh->{port_id}\n";
+      print $alerts_fh "null,3,$device_id,$thresh->{port_id}\n";
    }
    elsif ($max_in > -1 && $traffic_in > $max_in){
-      print $alerts_fh "null,4,$thresh->{port_id}\n";
+      print $alerts_fh "null,4,$device_id,$thresh->{port_id}\n";
    }
    elsif ($min_out > -1 && $traffic_out < $min_out){
-      print $alerts_fh "null,3,$thresh->{port_id}\n";
+      print $alerts_fh "null,3,$device_id,$thresh->{port_id}\n";
    }
    elsif ($max_out > -1 && $traffic_out > $max_out){
-      print $alerts_fh "null,4,$thresh->{port_id}\n";
+      print $alerts_fh "null,4,$device_id,$thresh->{port_id}\n";
    }
 }
 
