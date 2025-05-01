@@ -59,10 +59,13 @@ my $qports="SELECT `port_id`,`ifindex` FROM `ports` WHERE device_id=?";
 my $qthresh="SELECT p.port_id,t.min_in,t.max_in,t.min_out,t.max_out FROM `ports` p JOIN thresholds t ON p.port_id=t.port_id WHERE p.device_id=?";
 my $qtrunc="TRUNCATE TABLE alerts_tmp;";
 my $qdisable_alert="UPDATE alerts a 
-LEFT JOIN alerts_tmp t ON (a.port_id=t.port_id AND a.alert_type_id=t.alert_type_id)
+LEFT JOIN alerts_tmp t ON (a.port_id=t.port_id AND a.device_id = t.device_id AND a.alert_type_id=t.alert_type_id)
 SET a.active=0 
-WHERE a.active AND t.port_id IS NULL;";
-my $qrise_alert="INSERT INTO `alerts`(`alert_type_id`, `port_id`) SELECT t.`alert_type_id`, t.`port_id` FROM alerts_tmp t LEFT JOIN alerts a ON (a.port_id=t.port_id AND a.alert_type_id=t.alert_type_id AND a.active) WHERE a.port_id IS NULL;";
+WHERE a.active AND (t.port_id IS NULL or t.device_id IS NULL);";
+my $qrise_alert="INSERT INTO `alerts`(`alert_type_id`,`device_id`, `port_id`) 
+SELECT t.`alert_type_id`,t.`device_id`, t.`port_id` FROM alerts_tmp t 
+LEFT JOIN alerts a ON (a.port_id=t.port_id AND a.device_id = t.device_id AND a.alert_type_id=t.alert_type_id AND a.active) 
+WHERE (a.port_id IS NULL OR a.device_id IS NULL);";
 foreach my $device ( @{ $devices }) {
 $device->{ports}=$dbh->selectall_arrayref($qports,{Slice=>{}},$device->{device_id} );
 $device->{thresholds}=$dbh->selectall_arrayref($qthresh,{Slice=>{}},$device->{device_id} );
@@ -114,7 +117,7 @@ $dbh=init_db();
 my $sth_trunc=$dbh->prepare($qtrunc);
 $sth_trunc->execute();
 #insert new tmp
-my $sqlsave=qx(mysql --skip-ssl=1 -h$cfg{sql_host} -u$cfg{sql_user} -p$cfg{sql_pass} -P$cfg{sql_port} --local-infile=1 -e "LOAD DATA LOCAL INFILE '$alerts_file' INTO TABLE $cfg{sql_db}.alerts_tmp FIELDS TERMINATED BY ',' (alert_id,alert_type_id,port_id)");
+my $sqlsave=qx(mysql --skip-ssl=1 -h$cfg{sql_host} -u$cfg{sql_user} -p$cfg{sql_pass} -P$cfg{sql_port} --local-infile=1 -e "LOAD DATA LOCAL INFILE '$alerts_file' INTO TABLE $cfg{sql_db}.alerts_tmp FIELDS TERMINATED BY ',' (alert_id,alert_type_id,device_id,port_id)");
 #
 my $sth_disable=$dbh->prepare($qdisable_alert);
 my $sth_rise=$dbh->prepare($qrise_alert);
@@ -134,84 +137,89 @@ my ($device)=shift;
 
 #* no ports no session
 if (scalar @{$device->{ports}} == 0){return;}
-
+my $device_has_thresholds=0;
+if( scalar @{$device->{thresholds}} > 0) {
+   $device_has_thresholds=1;
+}
 my $in_oid="1.3.6.1.2.1.31.1.1.1.6";
 my $out_oid="1.3.6.1.2.1.31.1.1.1.10";
+my $sys_oid="1.3.6.1.2.1.1.1";
 
 #* open sesson to device
 my ($session, $error) = Net::SNMP->session(
    -hostname    => $device->{ip} || 'localhost',
    -community   => $device->{community} || 'public',
    -version     => 'snmpv2c',
+   -timeout     => 1,
 );
  if (!defined $session) {
    printf "ERROR: %s.\n", $error;
    exit 1;
 }
-##calculates per device time diff
+#check if session is alive
+my $ping=$session->get_table($sys_oid); #|| die $session->error ;
+#
 my $currts=time(); #get current run timestamp
 my $greptime="grep ^$device->{device_id}--ts= $prev_file";
-my ($na,$prevts)=split('=',qx($greptime));
-# print "prev=$prevts\n";
-# my $time=$prevts+0-$currts;
+#get prev timestamp
+my ($prevts)=(split('=',qx($greptime)))[1] || 0;
+#calculate time diff
 my $time=$currts-eval($prevts);
-# print "diff=$time\n\n";
+#
 print $current_fh "$device->{device_id}--ts=$currts\n";
-
+#
 foreach my $port ( @{ $device->{ports} }) {
 my $ifindex=$port->{ifindex};
 my $in_req="$in_oid.$ifindex";
 my $out_req="$out_oid.$ifindex";
 
-my $result=$session->get_request($in_req,$out_req);
-#* parse results
-my $in_val=$result->{$in_req};
-my $out_val=$result->{$out_req};
-#? move to separate sub calculate()??
-
-#* get prev data by port_id
+#get current vals
+my $result=$session->get_request($in_req,$out_req) if $ping;
+my $in_val=$result->{$in_req} || -1;
+my $out_val=$result->{$out_req} || -1;
+#
+# get prev data by port_id
 my $grep="grep port_id=$port->{port_id}, $prev_file"; #throws err firtst run as file doesn't exists
-#* assign vals
 my ($port_id,$prev_in,$prev_out)=split(',',qx($grep));
-#* save to fh
+$prev_in = -1 if !$prev_in;
+$prev_out = -1 if !$prev_out;
+#* save current vals to fh
 print $current_fh "port_id=$port->{port_id},$in_val,$out_val\n";
 #
-#### calculate time
-#
-
 #* if prev data found we can calculate current traffic
 if($port_id){
 # *** TODO: check for empty values
 my $trafficIn=((eval($in_val-$prev_in)*8)/$time);                                                                                                                                            
-my $trafficOut=((eval($out_val-$prev_out)*8)/$time); 
+my $trafficOut=((eval($out_val-$prev_out)*8)/$time);
+if($prev_in == -1 || $prev_out == -1 || $in_val == -1 || $out_val == -1){
+   $trafficIn=0;
+   $trafficOut=0;
+} 
 
 #* export data
-#? print to STDOUT ? replace with FH?
 print $insert_fh "interfaceTraffic,device_id=$device->{device_id},port_id=$port->{port_id} intraffic=$trafficIn,outtraffic=$trafficOut\n";                                                                                                                                        
-
-#** !!!
-#can rise alert here
-if (scalar @{$device->{thresholds}} > 0){ #if device has thresh
-#  my $thresh = ( @{ $device->{thresholds} })->{port_id} == $port_id;
-my ($thresh) = grep { $port->{port_id} == $_->{port_id} } @{$device->{thresholds}};
-if($thresh){ 
-# print "##########\n".$thresh->{max_in}."\n########\n";
-threshold_check($thresh,$trafficIn,$trafficOut);
-
+#thresholds 
+if ($device_has_thresholds && $ping ){ #if device has thresh and is online
+# 
+my ($port_thresh) = grep { $port->{port_id} == $_->{port_id} } @{$device->{thresholds}};
+if($port_thresh){ 
+threshold_check($port_thresh,$device->{device_id},$trafficIn,$trafficOut);
 }
-}
-
-
-#threshold_check($port,$trafficIn,$trafficOut);
 }
 
 }
 
+}
+#rise device offline alert
+if (!$ping){
+   print $alerts_fh "null,5,$device->{device_id},0\n";
+}
 $session->close();
 
 }
 sub threshold_check{
    my $thresh=shift;
+   my $device_id=shift;
    my $traffic_in=shift;
    my $traffic_out=shift;
    my $min_in=eval($thresh->{min_in} +0) // -1;
@@ -221,16 +229,16 @@ sub threshold_check{
    #alert_type_id,port_id
    #alrt_type_ids: 1-oper changed, 2-admin changed, 3-min thresh, 4-max thresh
    if ($min_in > -1 && $traffic_in < $min_in){
-      print $alerts_fh "null,3,$thresh->{port_id}\n";
+      print $alerts_fh "null,3,$device_id,$thresh->{port_id}\n";
    }
    elsif ($max_in > -1 && $traffic_in > $max_in){
-      print $alerts_fh "null,4,$thresh->{port_id}\n";
+      print $alerts_fh "null,4,$device_id,$thresh->{port_id}\n";
    }
    elsif ($min_out > -1 && $traffic_out < $min_out){
-      print $alerts_fh "null,3,$thresh->{port_id}\n";
+      print $alerts_fh "null,3,$device_id,$thresh->{port_id}\n";
    }
    elsif ($max_out > -1 && $traffic_out > $max_out){
-      print $alerts_fh "null,4,$thresh->{port_id}\n";
+      print $alerts_fh "null,4,$device_id,$thresh->{port_id}\n";
    }
 }
 

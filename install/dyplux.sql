@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Apr 23, 2025 at 09:28 AM
+-- Generation Time: May 01, 2025 at 08:05 AM
 -- Server version: 10.11.9-MariaDB
 -- PHP Version: 8.3.10
 
@@ -30,6 +30,7 @@ SET time_zone = "+00:00";
 CREATE TABLE `alerts` (
   `alert_id` int(11) NOT NULL,
   `alert_type_id` int(11) NOT NULL,
+  `device_id` int(11) NOT NULL,
   `port_id` int(11) NOT NULL,
   `active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` datetime NOT NULL DEFAULT current_timestamp(),
@@ -45,6 +46,7 @@ CREATE TABLE `alerts` (
 CREATE TABLE `alerts_tmp` (
   `alert_id` int(11) NOT NULL,
   `alert_type_id` int(11) NOT NULL,
+  `device_id` int(11) NOT NULL,
   `port_id` int(11) NOT NULL,
   `dt` datetime NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -68,7 +70,8 @@ INSERT INTO `alert_types` (`alert_type_id`, `name`) VALUES
 (1, 'port oper changed'),
 (2, 'port admin changed'),
 (3, 'min threshold reached'),
-(4, 'max threshold reached');
+(4, 'max threshold reached'),
+(5, 'device is offline');
 
 -- --------------------------------------------------------
 
@@ -213,7 +216,7 @@ ALTER TABLE `alerts_tmp`
 -- AUTO_INCREMENT for table `alert_types`
 --
 ALTER TABLE `alert_types`
-  MODIFY `alert_type_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `alert_type_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `dashboards`
@@ -231,7 +234,7 @@ ALTER TABLE `devices`
 -- AUTO_INCREMENT for table `ports`
 --
 ALTER TABLE `ports`
-  MODIFY `port_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `port_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `thresholds`
