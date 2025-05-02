@@ -50,6 +50,24 @@ Go to your Influx database and create new bucket.
 Fill your credentials in config.pl.
 
 ---
+
+### Collector install
+
+Download collector (if you use remote machine as collector)
+
+```wget https://raw.githubusercontent.com/mitkogatev-dev/dyplux/refs/heads/dev/collector/collect.pl ```
+
+Make it executable
+
+``` chmod +x collector.pl ```
+
+!!! Make sure collector has write access to its current folder, as it needs to create temporary files. Or edit collect.pl at line 21 and replace $dir with full path to a folder with write access.
+
+Edit collect.pl at line 26 and fill your credentials.
+
+Run ```./collect.pl``` to make sure it's working, then install cronjob with desired interval.
+
+---
 ---
 
 
