@@ -1,3 +1,8 @@
+### Delete graphs from Influx on device or port delete;
+
+### create install.pl 
+
+
 
 ### &#x2611; use the input in main form for quicksearch ports
 
@@ -13,13 +18,9 @@ eg: &#9746; ~~select from ports where name like %name%;~~
 
 </details>
 
-## Delete graphs from Influx on device or port delete;
+### &#9745; Curl and js fetch queries are the same no need to write them twice
 
-## create install.pl 
-
-## Curl and js fetch queries are the same no need to write them twice
-
-## finish curl method
+### &#9745; finish curl method
 
 ### &#9745; delete port from dash has no confirm
 
