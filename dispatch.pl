@@ -67,7 +67,7 @@ sub get_port_formdata{
 sub show_graphs{
     my $device_id=shift;
     my $title=qq(<h4>Showing graphs for device $input->{dev_name}</h4>);
-    return $title . Strings::grapher(Service::get_ports_db());
+    return $title . Strings::graph_filters() . Strings::grapher(Service::get_ports_db());
 }
 sub port_detail{
     my $ports=Service::get_port_data($input->{port_id});
@@ -86,7 +86,7 @@ sub show_dashboard_graphs{
     }else{
         $title.=qq(dashboard $input->{dashboard_name}</h4>);
     }
-    return $title . Strings::grapher($ports);
+    return $title . Strings::graph_filters() . Strings::grapher($ports);
 }
 sub threshold{
     return Strings::port_thresh(Service::get_port_thresholds($input->{port_id}));
