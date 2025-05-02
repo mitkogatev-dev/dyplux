@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="js/script.js"></script>
+    <title>Dyplux Grapher</title>
+    
+</head>
+<body>
+    <div class="header"><h2>Dyplux</h2></div>
+    <div id="side">
+        <form action="router.cgi" method="post" target="frame">
+            <input type="text" name="quick_find" id="quickFind" placeholder="Find port">
+            <input type="submit" value="find" onclick="validateFind(event)">
+            <!-- <input type="submit" value="dada" name="dada"> -->
+            <input type="submit" value="add device" name="add_dev">
+            <input type="submit" value="devices" name="show_devices">
+            <input type="submit" value="dashboards" name="dashboards">
+            <input type="submit" value="alerts" name="alerts">
+            <input type="submit" value="thresholds" name="thresholds">
+        </form>
+    </div>
+    
+    <iframe id="frame" name="frame" frameborder="0" scrolling="yes" class="frame"  onload="resizeIframe(this)"></iframe>
+    <div class="clearfix"></div>
+</body>
+</html>

@@ -1,0 +1,54 @@
+.hidden{
+    display: none;
+}
+.header{
+    padding: 10px;
+    text-align: center;
+    color: rgb(54, 52, 52);
+    margin-bottom: 8px;
+    background: #0f8aba;
+    background: linear-gradient(164deg,rgba(15, 138, 186, 1) 0%, rgba(245, 245, 245, 1) 50%, rgba(13, 140, 28, 1) 100%);
+}
+body{
+    margin:0;
+    padding: 0;
+    background-color: rgb(121, 213, 204);
+}
+#side input[type=submit]{
+    width: 90%;
+} 
+#mainframe{
+    /* background-color: rgb(152, 197, 197); */
+    background-color: rgb(245, 247, 247);
+}
+#side{
+    width:10%;
+    margin-left:5px ;
+    margin-right:10px;
+    float: left;
+    /* border: 2px solid red; */
+}
+.frame {
+    width:82%;
+    float: left;
+    /* border: 2px solid red; */
+}
+.clearfix{
+    clear:both
+}
+
+.graph{
+    display: inline-block;
+    width: 90%;
+   /* margin: 10px; */
+    /* width: 30%; */
+   /* width: 30%; */
+}
+.grside{
+  display: inline-block;
+  width: 10%;
+  vertical-align:top;
+}
+#quickFind{
+width: 85%;
+}
