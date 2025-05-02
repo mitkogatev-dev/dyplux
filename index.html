@@ -10,11 +10,12 @@
     
 </head>
 <body>
+    <div class="header"><h2>Dyplux</h2></div>
     <div id="side">
         <form action="router.cgi" method="post" target="frame">
-            <input type="text" name="quick_find" id="quickFind" >
+            <input type="text" name="quick_find" id="quickFind" placeholder="Find port">
             <input type="submit" value="find" onclick="validateFind(event)">
-            <input type="submit" value="dada" name="dada">
+            <!-- <input type="submit" value="dada" name="dada"> -->
             <input type="submit" value="add device" name="add_dev">
             <input type="submit" value="devices" name="show_devices">
             <input type="submit" value="dashboards" name="dashboards">
