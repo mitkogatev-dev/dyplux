@@ -139,8 +139,8 @@ if( scalar @{$device->{thresholds}} > 0) {
 my $in_oid="1.3.6.1.2.1.31.1.1.1.6";
 my $out_oid="1.3.6.1.2.1.31.1.1.1.10";
 my $sys_oid="1.3.6.1.2.1.1.1";
-my $oper_oid=".1.3.6.1.2.1.2.2.1.8";                                                                                                                                   
-my $admin_oid=".1.3.6.1.2.1.2.2.1.7";
+my $oper_oid="1.3.6.1.2.1.2.2.1.8";                                                                                                                                   
+my $admin_oid="1.3.6.1.2.1.2.2.1.7";
 
 #* open sesson to device
 my ($session, $error) = Net::SNMP->session(
@@ -173,17 +173,21 @@ my $oper_req="$oper_oid.$ifindex";
 my $admin_req="$admin_oid.$ifindex";
 
 #get current vals
-my $result=$session->get_request($in_req,$out_req) if $ping;
+my $result=$session->get_request($in_req,$out_req,$admin_req,$oper_req) if $ping;
 my $in_val=$result->{$in_req} || -1;
 my $out_val=$result->{$out_req} || -1;
+my $admin_val=$result->{$admin_req} || -1;
+my $oper_val=$result->{$oper_req} || -1;
 #
 # get prev data by port_id
 my $grep="grep port_id=$port->{port_id}, $prev_file"; #throws err firtst run as file doesn't exists
-my ($port_id,$prev_in,$prev_out)=split(',',qx($grep));
+my ($port_id,$prev_in,$prev_out,$prev_admin,$prev_oper)=split(',',qx($grep));
 $prev_in = -1 if !$prev_in;
 $prev_out = -1 if !$prev_out;
+$prev_admin = -1 if !$prev_admin;
+$prev_oper = -1 if !$prev_oper;
 #* save current vals to fh
-print $current_fh "port_id=$port->{port_id},$in_val,$out_val\n";
+print $current_fh "port_id=$port->{port_id},$in_val,$out_val,$admin_val,$oper_val\n";
 #
 #* if prev data found we can calculate current traffic
 if($port_id){
@@ -197,6 +201,15 @@ if($prev_in == -1 || $prev_out == -1 || $in_val == -1 || $out_val == -1){
 
 #* export data
 print $insert_fh "interfaceTraffic,device_id=$device->{device_id},port_id=$port->{port_id} intraffic=$trafficIn,outtraffic=$trafficOut\n";                                                                                                                                        
+#oper
+if($admin_val !=-1 || $oper_val !=-1 || $prev_admin !=-1 || $prev_oper !=-1){
+my $oper_diff=(eval($oper_val-$prev_oper));
+my $admin_diff=(eval($admin_val-$prev_admin));
+print $alerts_fh "null,2,$device->{device_id},$port->{port_id}\n" if $admin_diff !=0;
+print $alerts_fh "null,1,$device->{device_id},$port->{port_id}\n" if $oper_diff !=0;
+}
+
+
 #thresholds 
 if ($device_has_thresholds && $ping ){ #if device has thresh and is online
 # 
