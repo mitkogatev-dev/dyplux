@@ -47,13 +47,9 @@ if (open my $cfg_file, "< $config_file") {
 }
 ###
 
-
-# my $dbh = DBI->connect("DBI:mysql:$cfg{sql_db}:$cfg{sql_host}:$cfg{sql_port}", $cfg{sql_user}, $cfg{sql_pass},                                                                                                                                                                                
-# { RaiseError => 1, AutoCommit => 1 });   
 my $dbh=init_db();
 #get defined ports from db
 my $qdev="SELECT `device_id`,`ip`,`community` FROM `devices` WHERE 1";
-my $devices=$dbh->selectall_arrayref($qdev,{Slice=>{}} ); 
 my $qports="SELECT `port_id`,`ifindex` FROM `ports` WHERE device_id=?";
 # my $qports="SELECT p.`port_id`,p.`ifindex`,t.min_in,t.max_in,t.min_out,t.max_out FROM `ports` p LEFT JOIN thresholds t ON p.port_id=t.port_id WHERE p.device_id=?";
 my $qthresh="SELECT p.port_id,t.min_in,t.max_in,t.min_out,t.max_out FROM `ports` p JOIN thresholds t ON p.port_id=t.port_id WHERE p.device_id=?";
@@ -66,13 +62,15 @@ my $qrise_alert="INSERT INTO `alerts`(`alert_type_id`,`device_id`, `port_id`)
 SELECT t.`alert_type_id`,t.`device_id`, t.`port_id` FROM alerts_tmp t 
 LEFT JOIN alerts a ON (a.port_id=t.port_id AND a.device_id = t.device_id AND a.alert_type_id=t.alert_type_id AND a.active) 
 WHERE (a.port_id IS NULL OR a.device_id IS NULL);";
+#
+my $devices=$dbh->selectall_arrayref($qdev,{Slice=>{}} ); 
+
 foreach my $device ( @{ $devices }) {
 $device->{ports}=$dbh->selectall_arrayref($qports,{Slice=>{}},$device->{device_id} );
 $device->{thresholds}=$dbh->selectall_arrayref($qthresh,{Slice=>{}},$device->{device_id} );
 }
 $dbh->disconnect();
 
-# print Dumper($devices);
 #open current file to store data
 open (my $current_fh,">", $current_file) or die $!;
 open (my $insert_fh,">", $insert_file) or die $!;
@@ -108,9 +106,7 @@ close $insert_fh;
 close $alerts_fh;
 #save to DB
 # ***********
-# *** !!! DISABLED FOR TEST
 my $save=qx($cfg{influx_binary} write -b $cfg{influx_bucket} -f $insert_file --host $cfg{influx_url} -t $cfg{influx_token} -o $cfg{influx_org});
-# ** TODO: insert alerts(thresholds)
 #reconnect
 $dbh=init_db();
 #empty tmp
@@ -128,8 +124,7 @@ $dbh->disconnect;
 exit;
 
 sub init_db{
-   return DBI->connect("DBI:mysql:$cfg{sql_db}:$cfg{sql_host}:$cfg{sql_port}", $cfg{sql_user}, $cfg{sql_pass},                                                                                                                                                                                
-{ RaiseError => 1, AutoCommit => 1 });
+   return DBI->connect("DBI:mysql:$cfg{sql_db}:$cfg{sql_host}:$cfg{sql_port}", $cfg{sql_user}, $cfg{sql_pass},{ RaiseError => 1, AutoCommit => 1 });
 }
 #collect data
 sub collect{
@@ -144,6 +139,8 @@ if( scalar @{$device->{thresholds}} > 0) {
 my $in_oid="1.3.6.1.2.1.31.1.1.1.6";
 my $out_oid="1.3.6.1.2.1.31.1.1.1.10";
 my $sys_oid="1.3.6.1.2.1.1.1";
+my $oper_oid=".1.3.6.1.2.1.2.2.1.8";                                                                                                                                   
+my $admin_oid=".1.3.6.1.2.1.2.2.1.7";
 
 #* open sesson to device
 my ($session, $error) = Net::SNMP->session(
@@ -172,6 +169,8 @@ foreach my $port ( @{ $device->{ports} }) {
 my $ifindex=$port->{ifindex};
 my $in_req="$in_oid.$ifindex";
 my $out_req="$out_oid.$ifindex";
+my $oper_req="$oper_oid.$ifindex";
+my $admin_req="$admin_oid.$ifindex";
 
 #get current vals
 my $result=$session->get_request($in_req,$out_req) if $ping;
