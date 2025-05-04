@@ -25,6 +25,7 @@ my $alerts_file="$dir/alerts.txt";
 # my $time=60;
 my %cfg=(
    max_threads => 4,
+   alert_on_port_down_only => 1,
    influx_binary => "/usr/sbin/influx",
    influx_bucket => "traffic",
    influx_url => "http://127.0.0.1:8086",
@@ -203,10 +204,29 @@ if($prev_in == -1 || $prev_out == -1 || $in_val == -1 || $out_val == -1){
 print $insert_fh "interfaceTraffic,device_id=$device->{device_id},port_id=$port->{port_id} intraffic=$trafficIn,outtraffic=$trafficOut\n";                                                                                                                                        
 #oper
 if($admin_val !=-1 || $oper_val !=-1 || $prev_admin !=-1 || $prev_oper !=-1){
-my $oper_diff=(eval($oper_val-$prev_oper));
-my $admin_diff=(eval($admin_val-$prev_admin));
-print $alerts_fh "null,2,$device->{device_id},$port->{port_id}\n" if $admin_diff !=0;
-print $alerts_fh "null,1,$device->{device_id},$port->{port_id}\n" if $oper_diff !=0;
+#rises alert on port change and disables it on second run
+#
+if($cfg{alert_on_port_down_only}){
+   #rise alert if port is down, and disabe it on UP
+   if($admin_val > 1){
+      print $alerts_fh "null,2,$device->{device_id},$port->{port_id}\n";
+   }
+   elsif($oper_val > 1){
+      print $alerts_fh "null,1,$device->{device_id},$port->{port_id}\n";
+   }
+}
+else
+{
+   my $oper_diff=(eval($oper_val-$prev_oper));
+   my $admin_diff=(eval($admin_val-$prev_admin));
+   #rise alert on every port change and disable it immediately
+if($admin_diff !=0){
+      print $alerts_fh "null,2,$device->{device_id},$port->{port_id}\n";
+   }
+   elsif($oper_diff !=0){
+      print $alerts_fh "null,1,$device->{device_id},$port->{port_id}\n";
+   }
+}
 }
 
 
