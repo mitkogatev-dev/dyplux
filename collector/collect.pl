@@ -25,6 +25,7 @@ my $alerts_file="$dir/alerts.txt";
 # my $time=60;
 my %cfg=(
    max_threads => 4,
+   alert_on_port_down_only => 1,
    influx_binary => "/usr/sbin/influx",
    influx_bucket => "traffic",
    influx_url => "http://127.0.0.1:8086",
@@ -47,13 +48,9 @@ if (open my $cfg_file, "< $config_file") {
 }
 ###
 
-
-# my $dbh = DBI->connect("DBI:mysql:$cfg{sql_db}:$cfg{sql_host}:$cfg{sql_port}", $cfg{sql_user}, $cfg{sql_pass},                                                                                                                                                                                
-# { RaiseError => 1, AutoCommit => 1 });   
 my $dbh=init_db();
 #get defined ports from db
 my $qdev="SELECT `device_id`,`ip`,`community` FROM `devices` WHERE 1";
-my $devices=$dbh->selectall_arrayref($qdev,{Slice=>{}} ); 
 my $qports="SELECT `port_id`,`ifindex` FROM `ports` WHERE device_id=?";
 # my $qports="SELECT p.`port_id`,p.`ifindex`,t.min_in,t.max_in,t.min_out,t.max_out FROM `ports` p LEFT JOIN thresholds t ON p.port_id=t.port_id WHERE p.device_id=?";
 my $qthresh="SELECT p.port_id,t.min_in,t.max_in,t.min_out,t.max_out FROM `ports` p JOIN thresholds t ON p.port_id=t.port_id WHERE p.device_id=?";
@@ -66,13 +63,15 @@ my $qrise_alert="INSERT INTO `alerts`(`alert_type_id`,`device_id`, `port_id`)
 SELECT t.`alert_type_id`,t.`device_id`, t.`port_id` FROM alerts_tmp t 
 LEFT JOIN alerts a ON (a.port_id=t.port_id AND a.device_id = t.device_id AND a.alert_type_id=t.alert_type_id AND a.active) 
 WHERE (a.port_id IS NULL OR a.device_id IS NULL);";
+#
+my $devices=$dbh->selectall_arrayref($qdev,{Slice=>{}} ); 
+
 foreach my $device ( @{ $devices }) {
 $device->{ports}=$dbh->selectall_arrayref($qports,{Slice=>{}},$device->{device_id} );
 $device->{thresholds}=$dbh->selectall_arrayref($qthresh,{Slice=>{}},$device->{device_id} );
 }
 $dbh->disconnect();
 
-# print Dumper($devices);
 #open current file to store data
 open (my $current_fh,">", $current_file) or die $!;
 open (my $insert_fh,">", $insert_file) or die $!;
@@ -108,9 +107,7 @@ close $insert_fh;
 close $alerts_fh;
 #save to DB
 # ***********
-# *** !!! DISABLED FOR TEST
 my $save=qx($cfg{influx_binary} write -b $cfg{influx_bucket} -f $insert_file --host $cfg{influx_url} -t $cfg{influx_token} -o $cfg{influx_org});
-# ** TODO: insert alerts(thresholds)
 #reconnect
 $dbh=init_db();
 #empty tmp
@@ -128,8 +125,7 @@ $dbh->disconnect;
 exit;
 
 sub init_db{
-   return DBI->connect("DBI:mysql:$cfg{sql_db}:$cfg{sql_host}:$cfg{sql_port}", $cfg{sql_user}, $cfg{sql_pass},                                                                                                                                                                                
-{ RaiseError => 1, AutoCommit => 1 });
+   return DBI->connect("DBI:mysql:$cfg{sql_db}:$cfg{sql_host}:$cfg{sql_port}", $cfg{sql_user}, $cfg{sql_pass},{ RaiseError => 1, AutoCommit => 1 });
 }
 #collect data
 sub collect{
@@ -144,6 +140,8 @@ if( scalar @{$device->{thresholds}} > 0) {
 my $in_oid="1.3.6.1.2.1.31.1.1.1.6";
 my $out_oid="1.3.6.1.2.1.31.1.1.1.10";
 my $sys_oid="1.3.6.1.2.1.1.1";
+my $oper_oid="1.3.6.1.2.1.2.2.1.8";                                                                                                                                   
+my $admin_oid="1.3.6.1.2.1.2.2.1.7";
 
 #* open sesson to device
 my ($session, $error) = Net::SNMP->session(
@@ -172,19 +170,25 @@ foreach my $port ( @{ $device->{ports} }) {
 my $ifindex=$port->{ifindex};
 my $in_req="$in_oid.$ifindex";
 my $out_req="$out_oid.$ifindex";
+my $oper_req="$oper_oid.$ifindex";
+my $admin_req="$admin_oid.$ifindex";
 
 #get current vals
-my $result=$session->get_request($in_req,$out_req) if $ping;
+my $result=$session->get_request($in_req,$out_req,$admin_req,$oper_req) if $ping;
 my $in_val=$result->{$in_req} || -1;
 my $out_val=$result->{$out_req} || -1;
+my $admin_val=$result->{$admin_req} || -1;
+my $oper_val=$result->{$oper_req} || -1;
 #
 # get prev data by port_id
 my $grep="grep port_id=$port->{port_id}, $prev_file"; #throws err firtst run as file doesn't exists
-my ($port_id,$prev_in,$prev_out)=split(',',qx($grep));
+my ($port_id,$prev_in,$prev_out,$prev_admin,$prev_oper)=split(',',qx($grep));
 $prev_in = -1 if !$prev_in;
 $prev_out = -1 if !$prev_out;
+$prev_admin = -1 if !$prev_admin;
+$prev_oper = -1 if !$prev_oper;
 #* save current vals to fh
-print $current_fh "port_id=$port->{port_id},$in_val,$out_val\n";
+print $current_fh "port_id=$port->{port_id},$in_val,$out_val,$admin_val,$oper_val\n";
 #
 #* if prev data found we can calculate current traffic
 if($port_id){
@@ -198,6 +202,34 @@ if($prev_in == -1 || $prev_out == -1 || $in_val == -1 || $out_val == -1){
 
 #* export data
 print $insert_fh "interfaceTraffic,device_id=$device->{device_id},port_id=$port->{port_id} intraffic=$trafficIn,outtraffic=$trafficOut\n";                                                                                                                                        
+#oper
+if($admin_val !=-1 || $oper_val !=-1 || $prev_admin !=-1 || $prev_oper !=-1){
+#rises alert on port change and disables it on second run
+#
+if($cfg{alert_on_port_down_only}){
+   #rise alert if port is down, and disabe it on UP
+   if($admin_val > 1){
+      print $alerts_fh "null,2,$device->{device_id},$port->{port_id}\n";
+   }
+   elsif($oper_val > 1){
+      print $alerts_fh "null,1,$device->{device_id},$port->{port_id}\n";
+   }
+}
+else
+{
+   my $oper_diff=(eval($oper_val-$prev_oper));
+   my $admin_diff=(eval($admin_val-$prev_admin));
+   #rise alert on every port change and disable it immediately
+if($admin_diff !=0){
+      print $alerts_fh "null,2,$device->{device_id},$port->{port_id}\n";
+   }
+   elsif($oper_diff !=0){
+      print $alerts_fh "null,1,$device->{device_id},$port->{port_id}\n";
+   }
+}
+}
+
+
 #thresholds 
 if ($device_has_thresholds && $ping ){ #if device has thresh and is online
 # 
