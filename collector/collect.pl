@@ -11,6 +11,8 @@ use lib $RealBin;
 my $dir=$RealBin;
 
 #Config
+my $collector_id=1;
+#
 my ($config_file)="$dir/config.cfg" || "";
 my $current_file = "$dir/current_results.tmp";
 my $prev_file = "$dir/prev_results.tmp";
@@ -42,6 +44,8 @@ if (open my $cfg_file, "< $config_file") {
 ###
 
 #Queries
+my $qcollector_ping="UPDATE collectors SET active_host=(select host from information_schema.processlist WHERE ID=connection_id()),interval_seconds=(TIMESTAMPDIFF(SECOND,last_run,NOW())) WHERE collector_id=?";
+my $qcollector_config="SELECT enabled FROM collectors WHERE collector_id=?;";
 my $qdev="SELECT `device_id`,`ip`,`community` FROM `devices` WHERE 1";
 my $qports="SELECT `port_id`,`ifindex` FROM `ports` WHERE device_id=?";
 my $qthresh="SELECT p.port_id,t.min_in,t.max_in,t.min_out,t.max_out FROM `ports` p JOIN thresholds t ON p.port_id=t.port_id WHERE p.device_id=?";
@@ -70,6 +74,16 @@ open (my $alerts_fh,">", $alerts_file) or die $!;
 
 #Create devices hash
 my $dbh=init_db();
+my $db_vars=$dbh->selectall_arrayref($qcollector_config,{Slice=>{}},$collector_id );
+die "Undefined collector!\n" if !@$db_vars[0];
+
+my $sth_alive=$dbh->prepare($qcollector_ping);
+
+if (!$sth_alive->execute($collector_id) ){
+   print "err \n";
+   exit;
+}
+
 my $devices=$dbh->selectall_arrayref($qdev,{Slice=>{}} ); 
 #
 foreach my $device ( @{ $devices }) {
