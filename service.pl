@@ -306,6 +306,12 @@ sub find_ports_by_name{
     @found=grep { $_->{port_name} =~m/$srch/i } @{$ports};
     return \@found;
 }
+sub collectors_get{
+    my $dbh=init_db();
+    my $collectors=$dbh->selectall_arrayref(Query::get_collectors(),{Slice=>{}} );
+    $dbh->disconnect;
+    return $collectors;
+}
 sub get_graphs_by_device{
     my $ports=get_ports_db();
 # use lib $RealBin."/lib";

@@ -127,4 +127,20 @@ sub port_thresholds{
 sub update_port_threshold{
     my $str="INSERT INTO `thresholds`(`port_id`,`min_in`,`max_in`,`min_out`,`max_out`) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `min_in`=?,`max_in`=?,`min_out`=?,`max_out`=?";
 }
+sub add_collector{
+    my $str="INSERT INTO collectors(collector_name) VALUES (?);";
+    return $str;
+}
+sub update_collector{
+    my $str="UPDATE collectors SET collector_name=?,enabled=?,disable_alerts=? WHERE collector_id=? ;";
+    return $str;
+}
+sub del_collector{
+    my $str="DELETE FROM collectors WHERE collector_id=? ;";
+    return $str;
+}
+sub get_collectors{
+    my $str="SELECT c.collector_id, c.collector_name, c.enabled, c.disable_alerts, c.active_host, c.last_run, c.interval_seconds,COUNT(d.device_id) AS devices FROM `collectors` c LEFT JOIN devices d ON d.collector_id=c.collector_id WHERE 1 GROUP BY c.collector_id; ";
+    return $str;
+}
 return 1;

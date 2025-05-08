@@ -100,4 +100,9 @@ sub show_dashboards{
     $result.=Strings::dashboard_list(Service::get_dashboards());
     return $result;
 }
+sub show_collectors{
+    my $collectors=Service::collectors_get();
+    my $title="<h4>Collectors</h4>";
+    return $title . Strings::collectors_list($collectors);
+}
 return 1;

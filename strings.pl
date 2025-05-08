@@ -261,7 +261,27 @@ sub alerts{
     }
     $result.="</table>";
     return $result;
-
+}
+sub collectors_list{
+    my $collectors=shift;
+    if(!$collectors || (scalar @{$collectors} == 0)){ return "No collectors defined!"; }
+    my $result="<table>";
+    foreach my $collector (@{$collectors}){
+        $result.=qq(
+            <tr>
+            <td>id:$collector->{collector_id}</td>
+            <td>name:$collector->{collector_name}</td>
+            <td>en:$collector->{enabled}</td>
+            <td>no alerts:$collector->{disable_alerts}</td>
+            <td>host:$collector->{active_host}</td>
+            <td>last run:$collector->{last_run}</td>
+            <td>interval:$collector->{interval_seconds} seconds</td>
+            <td>assigned devices:$collector->{devices}</td>
+            </tr>
+            );
+    }
+    $result.="</table>";
+    return $result;
 
 
 }

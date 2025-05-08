@@ -134,6 +134,9 @@ elsif($input{quick_find}){
     # $html="<p>todo: show graphs</p>" . Dumper(Service::find_ports_by_name($input{quick_find}));
     $html=Dispatch::show_dashboard_graphs(Service::find_ports_by_name($input{quick_find}));
 }
+elsif($input{collectors}){
+    $html=Dispatch::show_collectors();
+}
 else{ 
     # my @desc_arr=$cgi->param('sel');
     $html="<h2>Input not handled!!!</h2>" . Dumper($cgi);
