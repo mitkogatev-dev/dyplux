@@ -11,6 +11,8 @@ use lib $RealBin;
 my $dir=$RealBin;
 
 #Config
+my $collector_id=1;
+#
 my ($config_file)="$dir/config.cfg" || "";
 my $current_file = "$dir/current_results.tmp";
 my $prev_file = "$dir/prev_results.tmp";
@@ -42,7 +44,9 @@ if (open my $cfg_file, "< $config_file") {
 ###
 
 #Queries
-my $qdev="SELECT `device_id`,`ip`,`community` FROM `devices` WHERE 1";
+my $qcollector_ping="UPDATE collectors SET active_host=(select host from information_schema.processlist WHERE ID=connection_id()),interval_seconds=IFNULL(TIMESTAMPDIFF(SECOND,last_run,NOW()),0) WHERE collector_id=?";
+my $qcollector_config="SELECT collector_name,enabled,disable_alerts FROM collectors WHERE collector_id=?;";
+my $qdev="SELECT `device_id`,`ip`,`community` FROM `devices` WHERE collector_id=?";
 my $qports="SELECT `port_id`,`ifindex` FROM `ports` WHERE device_id=?";
 my $qthresh="SELECT p.port_id,t.min_in,t.max_in,t.min_out,t.max_out FROM `ports` p JOIN thresholds t ON p.port_id=t.port_id WHERE p.device_id=?";
 my $qtrunc="TRUNCATE TABLE alerts_tmp;";
@@ -70,7 +74,16 @@ open (my $alerts_fh,">", $alerts_file) or die $!;
 
 #Create devices hash
 my $dbh=init_db();
-my $devices=$dbh->selectall_arrayref($qdev,{Slice=>{}} ); 
+my $db_vars=$dbh->selectall_arrayref($qcollector_config,{Slice=>{}},$collector_id );
+die "Undefined collector!\n" if !@$db_vars[0];
+
+my $sth_alive=$dbh->prepare($qcollector_ping);
+
+$sth_alive->execute($collector_id);
+my $collector=( @{ $db_vars })[0];
+die "This collector is disabled\n" if !$collector->{enabled};
+
+my $devices=$dbh->selectall_arrayref($qdev,{Slice=>{}},$collector_id ); 
 #
 foreach my $device ( @{ $devices }) {
 $device->{ports}=$dbh->selectall_arrayref($qports,{Slice=>{}},$device->{device_id} );
@@ -157,7 +170,7 @@ sub collect{
    my $greptime="grep ^$device->{device_id}--ts= $prev_file";
    #get prev timestamp
    my $prevts=0;
-   $prevts=(split('=',qx($greptime)))[1] if -e $prev_file;
+   $prevts=(split('=',qx($greptime)))[1] || 0 if -e $prev_file;
    #calculate time diff
    my $time=$currts-eval($prevts);
    #
@@ -185,9 +198,9 @@ sub collect{
       #* export data
       print $insert_fh "interfaceTraffic,device_id=$device_id,port_id=$port_id intraffic=$traffic_in,outtraffic=$traffic_out\n";
       #oper
-      &oper_check($device_id,$port_id,$admin_val,$oper_val,$prev_admin,$prev_oper);
+      &oper_check($device_id,$port_id,$admin_val,$oper_val,$prev_admin,$prev_oper) if !$collector->{disable_alerts};
       #thresholds 
-      &threshold_check($device,$port_id,$traffic_in,$traffic_out) if $device_has_thresholds;
+      &threshold_check($device,$port_id,$traffic_in,$traffic_out) if ($device_has_thresholds && !$collector->{disable_alerts});
    }
 }
 sub oper_check{
@@ -197,7 +210,6 @@ sub oper_check{
    my $oper_val=shift;
    my $prev_admin=shift;
    my $prev_oper=shift;
-
    if($admin_val ne -1 || $oper_val ne -1 || $prev_admin ne -1 || $prev_oper ne -1){
          #rises alert on port change and disables it on second run
          #
