@@ -312,6 +312,45 @@ sub collectors_get{
     $dbh->disconnect;
     return $collectors;
 }
+sub collector_add{
+    my $name=shift;
+    my $dbh=init_db();
+    my $sth=$dbh->prepare(Query::add_collector());
+    my $result=0;
+    $result=1 if $sth->execute($name);
+    $dbh->disconnect;
+    return $result;
+}
+sub collectors_update{
+    my $cgi=shift;
+    my (@selected)=$cgi->param('sel');
+    my $dbh=init_db();
+    my $sth=$dbh->prepare(Query::update_collector());
+    my $counter=0;
+    foreach my $idx (@selected) {
+        my $name=($cgi->param("collector_name[$idx]")) || 0;
+        my $en=($cgi->param("enabled[$idx]")) || 0;
+        my $al=($cgi->param("disable_alerts[$idx]")) || 0;
+
+        $sth->execute($name,$en,$al,$idx);
+        $counter++;
+    }
+    $dbh->disconnect();
+    return  $counter;
+}
+sub collectors_del{
+    my $cgi=shift;
+    my (@selected)=$cgi->param('sel');
+    my $dbh=init_db();
+    my $sth=$dbh->prepare(Query::del_collector());
+    my $counter=0;
+    foreach my $idx (@selected) {
+        $sth->execute($idx);
+        $counter++;
+    }
+    $dbh->disconnect();
+    return  $counter;
+}
 sub get_graphs_by_device{
     my $ports=get_ports_db();
 # use lib $RealBin."/lib";

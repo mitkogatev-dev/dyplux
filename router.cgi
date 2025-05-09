@@ -137,6 +137,9 @@ elsif($input{quick_find}){
 elsif($input{collectors}){
     $html=Dispatch::show_collectors();
 }
+elsif($input{save_collectors} || $input{del_collectors} || $input{add_collector}){
+    $html=Dispatch::get_collectors_formdata($cgi);
+}
 else{ 
     # my @desc_arr=$cgi->param('sel');
     $html="<h2>Input not handled!!!</h2>" . Dumper($cgi);

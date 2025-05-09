@@ -264,9 +264,11 @@ sub alerts{
 }
 sub collectors_list{
     my $collectors=shift;
-    if(!$collectors || (scalar @{$collectors} == 0)){ return "No collectors defined!"; }
-    my $result="<form action='' method='post'><table>";
+    # if(!$collectors || (scalar @{$collectors} == 0)){ return "No collectors defined!"; }
+    my $result="<form action='' method='post'>";
+    $result.=qq(name:<input name='new_collector_name' /><input type='submit' name='add_collector' value='add'/> <p></p>);
     $result.=qq(
+        <table>
         <tr>
             <th>sel</th>
             <th>ID</th>
@@ -297,8 +299,11 @@ sub collectors_list{
             </tr>
             );
     }
-    $result.="</table>";
-    $result.="<input type='submit' name='save_collectors' value='save selected' /></form>";
+    $result.=qq(
+        </table>
+        <input type='submit' name='save_collectors' value='save selected' />
+        <input type='submit' name='del_collectors' value='delete selected' onclick="sure(event);" />
+        </form>);
 
     return $result;
 

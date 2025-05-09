@@ -64,6 +64,29 @@ sub get_port_formdata{
     # return Dumper $input;
 
 }
+sub get_collectors_formdata{
+    my $cgi=shift;
+    my (@selected)=$cgi->param('sel');
+    my $msg;
+    if($input->{add_collector}){
+        return "<p>Name can't be empty!</p>" . &show_collectors()  if("" eq $input->{new_collector_name});
+        return "<p>Collector added</p>" . &show_collectors() if Service::collector_add($input->{new_collector_name});
+    }
+    if(scalar @selected == 0){
+        return "<p>No ports Selected !</p>" . &show_collectors();
+    }
+    if($input->{save_collectors}){
+        my $count=Service::collectors_update($cgi);
+        return "<p>Updated $count collectors.</p>" . &show_collectors();
+    }
+    elsif($input->{del_collectors}){
+        my $count=Service::collectors_del($cgi);
+        return "<p>Deleted $count collectors.</p>" . &show_collectors();
+    }
+    
+
+
+}
 sub show_graphs{
     my $device_id=shift;
     my $title=qq(<h4>Showing graphs for device $input->{dev_name}</h4>);
