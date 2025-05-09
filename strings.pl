@@ -265,43 +265,46 @@ sub alerts{
 sub collectors_list{
     my $collectors=shift;
     if(!$collectors || (scalar @{$collectors} == 0)){ return "No collectors defined!"; }
-    my $result="<table>";
+    my $result="<form action='' method='post'><table>";
+    $result.=qq(
+        <tr>
+            <th>sel</th>
+            <th>ID</th>
+            <th>name</th>
+            <th>enabled</th>
+            <th>disable alerts</th>
+            <th>current host</th>
+            <th>last run</th>
+            <th>interval</th>
+            <th>devices</th>
+        </tr>);
     foreach my $collector (@{$collectors}){
+        my $id=$collector->{collector_id};
+        my $en_check=$collector->{enabled} ? "checked" : "";
+        my $al_check=$collector->{disable_alerts} ? "checked" : "";
+
         $result.=qq(
             <tr>
-            <td>id:$collector->{collector_id}</td>
-            <td>name:$collector->{collector_name}</td>
-            <td>en:$collector->{enabled}</td>
-            <td>no alerts:$collector->{disable_alerts}</td>
-            <td>host:$collector->{active_host}</td>
-            <td>last run:$collector->{last_run}</td>
-            <td>interval:$collector->{interval_seconds} seconds</td>
-            <td>assigned devices:$collector->{devices}</td>
+            <td><input type='checkbox' name='sel' value='$id' /></td>
+            <td>$id</td>
+            <td><input onfocus="selRow(this);" type='text' name='collector_name[$id]' value='$collector->{collector_name}'/></td>
+            <td><input onfocus="selRow(this);" type='checkbox' name='enabled[$id]' value='1' $en_check /></td>
+            <td><input onfocus="selRow(this);" type='checkbox' name='disable_alerts[$id]' value='1' $al_check /></td>
+            <td>$collector->{active_host}</td>
+            <td>$collector->{last_run}</td>
+            <td>$collector->{interval_seconds} seconds</td>
+            <td>$collector->{devices}</td>
             </tr>
             );
     }
     $result.="</table>";
+    $result.="<input type='submit' name='save_collectors' value='save selected' /></form>";
+
     return $result;
 
 
 }
-sub port_to_dashboard_formNO{
-    #todo:
-    #cannot have form inside form
-    #migrate to js
-    #convert foreach block to sub so it gets called only once
-    #target="inlineFrame" is invalid as it is not inside this iframe
-    my $port_id=shift;
-    my $dashboards=shift;
-    my $result=qq(<form name="dash" action="router.cgi" target="inlineFrame">
-        <input type="hidden" name="port_id" value="$port_id"/>
-        <select name="dashboard_id">);
-    foreach my $dashboard (@ {$dashboards}){
-        $result.="<option value='$dashboard->{dashboard_id}'>$dashboard->{dashboard_name}</option>";
-    }
-    $result.="</select> <input type='submit' name='add_to_dash' value='add'/></form>";
-    return $result;
-}
+
 sub gen_dash_select{
     my $dashboards=shift;
     my $result="<select name='dashboard_id'><option value=0>Dashboard</option>";
