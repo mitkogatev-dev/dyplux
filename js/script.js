@@ -39,7 +39,10 @@ function printMsg(msg){
   return 1;
 }
 function selRow(input){
-  input.closest('tr').querySelector('[name=sel]').click();
+  let sel=input.closest('tr').querySelector('[name=sel]');
+  if(!sel.checked){
+  sel.click();
+  }
 }
 function sure(e){
   if (confirm("sure to delete?")) {
