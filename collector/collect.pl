@@ -44,7 +44,7 @@ if (open my $cfg_file, "< $config_file") {
 ###
 
 #Queries
-my $qcollector_ping="UPDATE collectors SET active_host=(select host from information_schema.processlist WHERE ID=connection_id()),interval_seconds=IFNULL(TIMESTAMPDIFF(SECOND,last_run,NOW()),0) WHERE collector_id=?";
+my $qcollector_ping="UPDATE collectors SET active_host=(select host from information_schema.processlist WHERE ID=connection_id()),interval_seconds=IFNULL(TIMESTAMPDIFF(SECOND,last_run,NOW()),0), last_run=NOW() WHERE collector_id=?";
 my $qcollector_config="SELECT collector_name,enabled,disable_alerts FROM collectors WHERE collector_id=?;";
 my $qdev="SELECT `device_id`,`ip`,`community` FROM `devices` WHERE collector_id=?";
 my $qports="SELECT `port_id`,`ifindex` FROM `ports` WHERE device_id=?";
