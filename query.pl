@@ -13,7 +13,7 @@ sub add_device{
     return $str;
 }
 sub update_device{
-    my $str= "UPDATE devices SET ip=?, name=?, community=? WHERE device_id=?";
+    my $str= "UPDATE devices SET ip=?, name=?, community=?, collector_id=? WHERE device_id=?";
     return $str;
 }
 sub rem_device{
@@ -26,7 +26,7 @@ sub get_devices{
     if("" ne $device_id){
         $where="WHERE device_id = ?";
     }
-    return "SELECT `device_id`,`ip`,`name`,`community` FROM devices $where";
+    return "SELECT `device_id`,`ip`,`name`,`community`,`collector_id` FROM devices $where";
 }
 sub dashboard{
     my $what=shift || "";

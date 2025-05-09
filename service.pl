@@ -106,7 +106,7 @@ sub add_device{
         #update!!!
         $btn_val="update";
         $sth=$dbh->prepare(Query::update_device());
-        $sth->execute($ip,$dev_name,$community,$input->{device_id});
+        $sth->execute($ip,$dev_name,$community,$input->{collector},$input->{device_id});
         $dev_id=$input->{device_id};
         # return;
     }else{
@@ -143,22 +143,10 @@ sub del_device{
 }
 sub get_devices{
     my $dbh=init_db();
-    #  my $sth=$dbh->prepare(Query::get_devices());
-    #  $sth->execute();
-     #foreach row print table wit ip name comm button edit dev show ports create ports
-     my $devices=$dbh->selectall_arrayref(Query::get_devices(),{Slice=>{}}); 
-    #  return Strings::device_list($devices);
+    my $devices=$dbh->selectall_arrayref(Query::get_devices(),{Slice=>{}}); 
     return $devices;
-    
 }
-# sub add_port{
-# my $str="INSERT INTO `ports`(`device_id`, `custom_name`, `ifindex`, `ifname`, `ifalias`, `ifdescr`) VALUES (?, ?, ?, ?, ?, ?)";
-# return $str;
-# }#endsub
 sub get_ports{
-    #** todo check if port is already creted in DB by ifindex
-    #
-    # my $result="<form name='fports' action='' method='post'><table>";#add form
     my ($ip,$community)=(shift || "", shift || "") ;
     if("" eq $ip || "" eq $community) {return Strings::error();}
     my $ports=Snmp::get_interfaces($ip,$community);
@@ -169,7 +157,6 @@ sub get_ports_db{
     my $device_id=$input->{device_id} || shift;
     my $ports=$dbh->selectall_arrayref(Query::device_ports(),{Slice=>{}},$device_id); 
     $dbh->disconnect();
-    # return Strings::add_port_form($ports);
     return $ports;
 }
 sub get_port_data{
@@ -270,33 +257,7 @@ sub update_ports{
     $dbh->disconnect();
     return "Done! Updated $counter ports";
 }
-sub get_port_formdata{
-    my $cgi=shift;
-    my (@selected)=$cgi->param('sel');
-    my ($device_id)=$cgi->param('device_id');
-    if($cgi->param('cmd') && $cgi->param('cmd') eq "update"){
-        #* todo create and call update sub with $cgi,and @selected args
-        # return "UPDATE!";
-        return Dumper(@selected); 
-    }
-    my $dbh=init_db();
-    my $sth=$dbh->prepare(Query::add_port());
-    #my @port_data;
-    my $counter=0;
-    foreach my $idx (@selected) {
-        #V#todo if $port_id exec update
-    #push(@port_data,{ifindex=>$idx,ifname=>$cgi->param("ifdesc[$idx]"),device_id=>$device_id } );
-    # $sth->execute($device_id,$idx,$cgi->param("ifname[$idx]"),$cgi->param("port_name[$idx]"));#|| die return error
-    
-    #passing last values second time for update
-    $sth->execute($device_id,$idx,$cgi->param("ifname[$idx]"),$cgi->param("port_name[$idx]"),$cgi->param("ifname[$idx]"),$cgi->param("port_name[$idx]"));#|| die return error
-    $counter++;
-    }
-    $dbh->disconnect();
-    
-        # return @selected;
-        return "Done! Created $counter ports";
-}
+
 sub find_ports_by_name{
     my $srch=shift || "";
     my @found;
@@ -351,34 +312,5 @@ sub collectors_del{
     $dbh->disconnect();
     return  $counter;
 }
-sub get_graphs_by_device{
-    my $ports=get_ports_db();
-# use lib $RealBin."/lib";
 
-    # use InfluxDB::HTTP;
-
-my $influx = InfluxDB::HTTP->new(host => '192.0.0.55',
-        port => 8086);
-
-my $ping_result = $influx->ping();
-# print "$ping_result\n";
-    if($ping_result){
-        my $device_id=$input->{device_id};
-        my $query = $influx->query(
-    [ 'SELECT intraffic,outtraffic FROM interfaceTraffic WHERE device_id=~ /^'.$device_id.'$/ AND (time >= now() - 72h and time <= now()) GROUP BY port_id'],
-    database => "traffic",
-    
-    
-);
-
-
-
-    # return "$ping_result";
-    # return $query->results;
-    return $query->results;
-    }else{
-        return "no conn";
-    }
-
-}
 return 1;

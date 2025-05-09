@@ -19,13 +19,25 @@ sub add_dev_form{
     # my ($ip,$dev_name,$community,$btn)=(shift || "",shift || "",shift || "",shift || "") ;
     my $msg=shift || "";
 
-    my ($ip,$dev_name,$community,$btn)=($input->{ip} || "",$input->{dev_name} || "",$input->{community} || "", "") ;
+    my ($ip,$dev_name,$community,$btn,$collector_id)=($input->{ip} || "",$input->{dev_name} || "",$input->{community} || "", "",$input->{collector} || "") ;
     my $btn_val="add";
+    my $sel="";
     
     if($input->{device_id}){
         $btn_val="update";
+        $btn.=qq(<input type="submit" value="delete" name="remove_device" onclick="sure(event);"/>);
         $btn.=test_snmp_btn();
         $btn.="<input type='hidden' name='device_id' value='$input->{device_id}'>";
+        $sel=qq(<label for="collector">collector</label>
+        <select name='collector' id='collector'>
+        <option value='0'>undefined</option>);
+        my $collectors=Service::collectors_get();
+        foreach my $collector (@{$collectors}){
+        my $selected="";
+         if (eval($collector_id eq $collector->{collector_id})){$selected="selected";}
+        $sel.="<option value=$collector->{collector_id} $selected >$collector->{collector_name}</option>";
+        }
+        $sel.="</select>";
     }
     if("ok" eq $msg){$btn.=get_ports_btn();}
 
@@ -36,12 +48,11 @@ sub add_dev_form{
     <input type="text" name="dev_name" id="dev_name" value="$dev_name" required>
     <label for="community">comm</label>
     <input type="text" name="community" id="community" value="$community" required>
-
-    <input type="submit" value="$btn_val" name="submit_device">
-    <input type="submit" value="delete" name="remove_device" onclick="sure(event);"/>
-    
+    $sel
+    );
+    $form.=qq(<p><input type="submit" value="$btn_val" name="submit_device">
     $btn
-</form>);
+</p></form>);
 return $form;
 }
 sub get_ports_btn{
@@ -123,6 +134,7 @@ sub device_list{
             <input type='hidden' name='ip' value='$device->{ip}'>
             <input type='hidden' name='community' value='$device->{community}'>
             <input type='hidden' name='dev_name' value='$device->{name}'>
+            <input type='hidden' name='collector' value='$device->{collector_id}'>
         </td>
         </form></tr>";
     }

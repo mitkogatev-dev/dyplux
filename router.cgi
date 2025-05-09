@@ -62,9 +62,6 @@ elsif($input{index_ports}){
     $html=Service::get_ports($input{ip},$input{community});
 }
 elsif($input{save_ports}){
-    #todo
-    # $html=Dumper(Service::get_port_formdata($cgi));
-    # $html=Service::get_port_formdata($cgi);#name of sub???
     $html=Dispatch::get_port_formdata($cgi);
 }
 elsif($input{edit_ports}){
