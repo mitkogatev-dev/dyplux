@@ -287,15 +287,18 @@ sub collectors_list{
             <th>name</th>
             <th>enabled</th>
             <th>disable alerts</th>
+            <th>timeout</th>
             <th>current host</th>
             <th>last run</th>
             <th>interval</th>
             <th>devices</th>
+            <th>is active</th>
         </tr>);
     foreach my $collector (@{$collectors}){
         my $id=$collector->{collector_id};
         my $en_check=$collector->{enabled} ? "checked" : "";
         my $al_check=$collector->{disable_alerts} ? "checked" : "";
+        my $is_active=$collector->{active} ? "yes":"no";
 
         $result.=qq(
             <tr>
@@ -304,10 +307,12 @@ sub collectors_list{
             <td><input onfocus="selRow(this);" type='text' name='collector_name[$id]' value='$collector->{collector_name}'/></td>
             <td><input onfocus="selRow(this);" type='checkbox' name='enabled[$id]' value='1' $en_check /></td>
             <td><input onfocus="selRow(this);" type='checkbox' name='disable_alerts[$id]' value='1' $al_check /></td>
+            <td><input onfocus="selRow(this);" type='text' name='timeout_min[$id]' value='$collector->{timeout_min}' /></td>
             <td>$collector->{active_host}</td>
             <td>$collector->{last_run}</td>
             <td>$collector->{interval_seconds} seconds</td>
             <td>$collector->{devices}</td>
+            <td>$is_active</td>
             </tr>
             );
     }

@@ -132,7 +132,7 @@ sub add_collector{
     return $str;
 }
 sub update_collector{
-    my $str="UPDATE collectors SET collector_name=?,enabled=?,disable_alerts=? WHERE collector_id=? ;";
+    my $str="UPDATE collectors SET collector_name=?,enabled=?,disable_alerts=?,timeout_min=? WHERE collector_id=? ;";
     return $str;
 }
 sub del_collector{
@@ -140,7 +140,7 @@ sub del_collector{
     return $str;
 }
 sub get_collectors{
-    my $str="SELECT c.collector_id, c.collector_name, c.enabled, c.disable_alerts, c.active_host, c.last_run, c.interval_seconds,COUNT(d.device_id) AS devices FROM `collectors` c LEFT JOIN devices d ON d.collector_id=c.collector_id WHERE 1 GROUP BY c.collector_id; ";
+    my $str="SELECT c.collector_id, c.collector_name, c.enabled, c.disable_alerts, c.active_host, c.last_run, c.interval_seconds,COUNT(d.device_id) AS devices,c.timeout_min,IFNULL((TIMESTAMPDIFF(MINUTE,c.last_run,NOW())) <= c.timeout_min,0) AS active FROM `collectors` c LEFT JOIN devices d ON d.collector_id=c.collector_id WHERE 1 GROUP BY c.collector_id; ";
     return $str;
 }
 return 1;

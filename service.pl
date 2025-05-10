@@ -292,8 +292,9 @@ sub collectors_update{
         my $name=($cgi->param("collector_name[$idx]")) || 0;
         my $en=($cgi->param("enabled[$idx]")) || 0;
         my $al=($cgi->param("disable_alerts[$idx]")) || 0;
+        my $timeout=($cgi->param("timeout_min[$idx]")) || 10;
 
-        $sth->execute($name,$en,$al,$idx);
+        $sth->execute($name,$en,$al,$timeout,$idx);
         $counter++;
     }
     $dbh->disconnect();
