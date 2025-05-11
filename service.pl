@@ -264,7 +264,7 @@ sub find_ports_by_name{
     if("" eq $srch) {return @found};
     my $ports=&get_port_data();
     #grep { $port->{port_id} == $_->{port_id} } @{$device->{thresholds}};
-    @found=grep { $_->{port_name} =~m/$srch/i } @{$ports};
+    @found=grep { $_->{port_name} =~m/$srch/i || $_->{ifname} =~m/$srch/i} @{$ports};
     return \@found;
 }
 sub collectors_get{
