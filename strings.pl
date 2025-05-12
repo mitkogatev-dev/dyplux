@@ -20,11 +20,11 @@ sub add_dev_form{
     my $msg=shift || "";
 
     my ($ip,$dev_name,$community,$btn,$collector_id)=($input->{ip} || "",$input->{dev_name} || "",$input->{community} || "", "",$input->{collector} || "") ;
-    my $btn_val="add";
+    my $btn_val="Add";
     my $sel="";
     
     if($input->{device_id}){
-        $btn_val="update";
+        $btn_val="Update";
         $btn.=qq(<input type="submit" value="delete" name="remove_device" onclick="sure(event);"/>);
         $btn.=test_snmp_btn();
         $btn.="<input type='hidden' name='device_id' value='$input->{device_id}'>";
@@ -41,14 +41,16 @@ sub add_dev_form{
     }
     if("ok" eq $msg){$btn.=get_ports_btn();}
 
-    my $form = qq(<form action="" method="post">
-    <label for="ip">ip address:</label>
-    <input type="text" name="ip" id="ip" value="$ip" required>
-    <label for="dev_name">name:</label>
-    <input type="text" name="dev_name" id="dev_name" value="$dev_name" required>
-    <label for="community">comm</label>
-    <input type="text" name="community" id="community" value="$community" required>
-    $sel
+    my $form = qq(
+        <h4>$btn_val device </h4>
+        <form action="" method="post">
+        <label for="ip">ip address:</label>
+        <input type="text" name="ip" id="ip" value="$ip" required>
+        <label for="dev_name">name:</label>
+        <input type="text" name="dev_name" id="dev_name" value="$dev_name" required>
+        <label for="community">comm</label>
+        <input type="text" name="community" id="community" value="$community" required>
+        $sel
     );
     $form.=qq(<p><input type="submit" value="$btn_val" name="submit_device">
     $btn
@@ -121,7 +123,7 @@ return $result;
 }
 sub device_list{
     my $devices=shift;
-    my $result="<table>";
+    my $result="<h4>Devices </h4><table>";
     foreach my $device (@{$devices}){
         $result.="<form action='' method='post'><tr>
         <td>$device->{name}</td>
@@ -174,7 +176,8 @@ sub dev_created{
 sub port_thresh{
     my $ports=shift;
     # my $port=@{ $port_arr }[0];
-    my $result="<form action='' method='post'>";
+    my $result="<p>Thresholds in [K/M/G] bit/s</p>";
+    $result.="<form action='' method='post'>";
     $result.=qq(<table><tr>
         <th>port</th><th>min in</th><th>max in</th><th>min out</th><th>max out</th>
         </tr>);
@@ -278,7 +281,12 @@ sub collectors_list{
     my $collectors=shift;
     # if(!$collectors || (scalar @{$collectors} == 0)){ return "No collectors defined!"; }
     my $result="<form action='' method='post'>";
-    $result.=qq(name:<input name='new_collector_name' /><input type='submit' name='add_collector' value='add'/> <p></p>);
+    $result.=qq(
+        <label for='new_collector_name'>Create new collector: </label>
+        <input name='new_collector_name' id='new_collector_name' placeholder='Colletor name' />
+        <input type='submit' name='add_collector' value='add'/> 
+        <p></p>
+        );
     $result.=qq(
         <table>
         <tr>
