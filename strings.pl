@@ -19,29 +19,42 @@ sub add_dev_form{
     # my ($ip,$dev_name,$community,$btn)=(shift || "",shift || "",shift || "",shift || "") ;
     my $msg=shift || "";
 
-    my ($ip,$dev_name,$community,$btn)=($input->{ip} || "",$input->{dev_name} || "",$input->{community} || "", "") ;
-    my $btn_val="add";
+    my ($ip,$dev_name,$community,$btn,$collector_id)=($input->{ip} || "",$input->{dev_name} || "",$input->{community} || "", "",$input->{collector} || "") ;
+    my $btn_val="Add";
+    my $sel="";
     
     if($input->{device_id}){
-        $btn_val="update";
+        $btn_val="Update";
+        $btn.=qq(<input type="submit" value="delete" name="remove_device" onclick="sure(event);"/>);
         $btn.=test_snmp_btn();
         $btn.="<input type='hidden' name='device_id' value='$input->{device_id}'>";
+        $sel=qq(<label for="collector">collector</label>
+        <select name='collector' id='collector'>
+        <option value='0'>undefined</option>);
+        my $collectors=Service::collectors_get();
+        foreach my $collector (@{$collectors}){
+        my $selected="";
+         if (eval($collector_id eq $collector->{collector_id})){$selected="selected";}
+        $sel.="<option value=$collector->{collector_id} $selected >$collector->{collector_name}</option>";
+        }
+        $sel.="</select>";
     }
     if("ok" eq $msg){$btn.=get_ports_btn();}
 
-    my $form = qq(<form action="" method="post">
-    <label for="ip">ip address:</label>
-    <input type="text" name="ip" id="ip" value="$ip" required>
-    <label for="dev_name">name:</label>
-    <input type="text" name="dev_name" id="dev_name" value="$dev_name" required>
-    <label for="community">comm</label>
-    <input type="text" name="community" id="community" value="$community" required>
-
-    <input type="submit" value="$btn_val" name="submit_device">
-    <input type="submit" value="delete" name="remove_device" onclick="sure(event);"/>
-    
+    my $form = qq(
+        <h4>$btn_val device </h4>
+        <form action="" method="post">
+        <label for="ip">ip address:</label>
+        <input type="text" name="ip" id="ip" value="$ip" required>
+        <label for="dev_name">name:</label>
+        <input type="text" name="dev_name" id="dev_name" value="$dev_name" required>
+        <label for="community">comm</label>
+        <input type="text" name="community" id="community" value="$community" required>
+        $sel
+    );
+    $form.=qq(<p><input type="submit" value="$btn_val" name="submit_device">
     $btn
-</form>);
+</p></form>);
 return $form;
 }
 sub get_ports_btn{
@@ -110,7 +123,7 @@ return $result;
 }
 sub device_list{
     my $devices=shift;
-    my $result="<table>";
+    my $result="<h4>Devices </h4><table>";
     foreach my $device (@{$devices}){
         $result.="<form action='' method='post'><tr>
         <td>$device->{name}</td>
@@ -123,6 +136,7 @@ sub device_list{
             <input type='hidden' name='ip' value='$device->{ip}'>
             <input type='hidden' name='community' value='$device->{community}'>
             <input type='hidden' name='dev_name' value='$device->{name}'>
+            <input type='hidden' name='collector' value='$device->{collector_id}'>
         </td>
         </form></tr>";
     }
@@ -162,7 +176,8 @@ sub dev_created{
 sub port_thresh{
     my $ports=shift;
     # my $port=@{ $port_arr }[0];
-    my $result="<form action='' method='post'>";
+    my $result="<p>Thresholds in [K/M/G] bit/s</p>";
+    $result.="<form action='' method='post'>";
     $result.=qq(<table><tr>
         <th>port</th><th>min in</th><th>max in</th><th>min out</th><th>max out</th>
         </tr>);
@@ -261,27 +276,65 @@ sub alerts{
     }
     $result.="</table>";
     return $result;
-
-
-
 }
-sub port_to_dashboard_formNO{
-    #todo:
-    #cannot have form inside form
-    #migrate to js
-    #convert foreach block to sub so it gets called only once
-    #target="inlineFrame" is invalid as it is not inside this iframe
-    my $port_id=shift;
-    my $dashboards=shift;
-    my $result=qq(<form name="dash" action="router.cgi" target="inlineFrame">
-        <input type="hidden" name="port_id" value="$port_id"/>
-        <select name="dashboard_id">);
-    foreach my $dashboard (@ {$dashboards}){
-        $result.="<option value='$dashboard->{dashboard_id}'>$dashboard->{dashboard_name}</option>";
+sub collectors_list{
+    my $collectors=shift;
+    # if(!$collectors || (scalar @{$collectors} == 0)){ return "No collectors defined!"; }
+    my $result="<form action='' method='post'>";
+    $result.=qq(
+        <label for='new_collector_name'>Create new collector: </label>
+        <input name='new_collector_name' id='new_collector_name' placeholder='Colletor name' />
+        <input type='submit' name='add_collector' value='add'/> 
+        <p></p>
+        );
+    $result.=qq(
+        <table>
+        <tr>
+            <th>sel</th>
+            <th>ID</th>
+            <th>name</th>
+            <th>enabled</th>
+            <th>disable alerts</th>
+            <th>timeout</th>
+            <th>current host</th>
+            <th>last run</th>
+            <th>interval</th>
+            <th>devices</th>
+            <th>is active</th>
+        </tr>);
+    foreach my $collector (@{$collectors}){
+        my $id=$collector->{collector_id};
+        my $en_check=$collector->{enabled} ? "checked" : "";
+        my $al_check=$collector->{disable_alerts} ? "checked" : "";
+        my $is_active=$collector->{active} ? "yes":"no";
+
+        $result.=qq(
+            <tr>
+            <td><input type='checkbox' name='sel' value='$id' /></td>
+            <td>$id</td>
+            <td><input onfocus="selRow(this);" type='text' name='collector_name[$id]' value='$collector->{collector_name}'/></td>
+            <td><input onfocus="selRow(this);" type='checkbox' name='enabled[$id]' value='1' $en_check /></td>
+            <td><input onfocus="selRow(this);" type='checkbox' name='disable_alerts[$id]' value='1' $al_check /></td>
+            <td><input onfocus="selRow(this);" type='text' name='timeout_min[$id]' value='$collector->{timeout_min}' /></td>
+            <td>$collector->{active_host}</td>
+            <td>$collector->{last_run}</td>
+            <td>$collector->{interval_seconds} seconds</td>
+            <td>$collector->{devices}</td>
+            <td>$is_active</td>
+            </tr>
+            );
     }
-    $result.="</select> <input type='submit' name='add_to_dash' value='add'/></form>";
+    $result.=qq(
+        </table>
+        <input type='submit' name='save_collectors' value='save selected' />
+        <input type='submit' name='del_collectors' value='delete selected' onclick="sure(event);" />
+        </form>);
+
     return $result;
+
+
 }
+
 sub gen_dash_select{
     my $dashboards=shift;
     my $result="<select name='dashboard_id'><option value=0>Dashboard</option>";

@@ -13,7 +13,7 @@ sub add_device{
     return $str;
 }
 sub update_device{
-    my $str= "UPDATE devices SET ip=?, name=?, community=? WHERE device_id=?";
+    my $str= "UPDATE devices SET ip=?, name=?, community=?, collector_id=? WHERE device_id=?";
     return $str;
 }
 sub rem_device{
@@ -26,7 +26,7 @@ sub get_devices{
     if("" ne $device_id){
         $where="WHERE device_id = ?";
     }
-    return "SELECT `device_id`,`ip`,`name`,`community` FROM devices $where";
+    return "SELECT `device_id`,`ip`,`name`,`community`,`collector_id` FROM devices $where";
 }
 sub dashboard{
     my $what=shift || "";
@@ -126,5 +126,21 @@ sub port_thresholds{
 }
 sub update_port_threshold{
     my $str="INSERT INTO `thresholds`(`port_id`,`min_in`,`max_in`,`min_out`,`max_out`) VALUES (?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `min_in`=?,`max_in`=?,`min_out`=?,`max_out`=?";
+}
+sub add_collector{
+    my $str="INSERT INTO collectors(collector_name) VALUES (?);";
+    return $str;
+}
+sub update_collector{
+    my $str="UPDATE collectors SET collector_name=?,enabled=?,disable_alerts=?,timeout_min=? WHERE collector_id=? ;";
+    return $str;
+}
+sub del_collector{
+    my $str="DELETE FROM collectors WHERE collector_id=? ;";
+    return $str;
+}
+sub get_collectors{
+    my $str="SELECT c.collector_id, c.collector_name, c.enabled, c.disable_alerts, c.active_host, c.last_run, c.interval_seconds,COUNT(d.device_id) AS devices,c.timeout_min,IFNULL((TIMESTAMPDIFF(MINUTE,c.last_run,NOW())) <= c.timeout_min,0) AS active FROM `collectors` c LEFT JOIN devices d ON d.collector_id=c.collector_id WHERE 1 GROUP BY c.collector_id; ";
+    return $str;
 }
 return 1;

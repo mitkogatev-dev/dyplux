@@ -62,9 +62,6 @@ elsif($input{index_ports}){
     $html=Service::get_ports($input{ip},$input{community});
 }
 elsif($input{save_ports}){
-    #todo
-    # $html=Dumper(Service::get_port_formdata($cgi));
-    # $html=Service::get_port_formdata($cgi);#name of sub???
     $html=Dispatch::get_port_formdata($cgi);
 }
 elsif($input{edit_ports}){
@@ -130,8 +127,13 @@ elsif($input{rem_dash_port}){
     Service::rem_dashboard_port();
     $html=Strings::dashboard_edit();
 }
+elsif($input{collectors}){
+    $html=Dispatch::show_collectors();
+}
+elsif($input{save_collectors} || $input{del_collectors} || $input{add_collector}){
+    $html=Dispatch::get_collectors_formdata($cgi);
+}
 elsif($input{quick_find}){
-    # $html="<p>todo: show graphs</p>" . Dumper(Service::find_ports_by_name($input{quick_find}));
     $html=Dispatch::show_dashboard_graphs(Service::find_ports_by_name($input{quick_find}));
 }
 else{ 

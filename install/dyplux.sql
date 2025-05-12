@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: May 01, 2025 at 08:05 AM
+-- Generation Time: May 12, 2025 at 07:25 AM
 -- Server version: 10.11.9-MariaDB
 -- PHP Version: 8.3.10
 
@@ -76,6 +76,30 @@ INSERT INTO `alert_types` (`alert_type_id`, `name`) VALUES
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `collectors`
+--
+
+CREATE TABLE `collectors` (
+  `collector_id` int(11) NOT NULL,
+  `collector_name` varchar(255) NOT NULL,
+  `enabled` tinyint(1) NOT NULL DEFAULT 1,
+  `disable_alerts` tinyint(1) NOT NULL DEFAULT 0,
+  `active_host` varchar(255) NOT NULL DEFAULT '0.0.0.0',
+  `last_run` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',
+  `interval_seconds` int(11) NOT NULL DEFAULT 0,
+  `timeout_min` int(11) NOT NULL DEFAULT 10
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `collectors`
+--
+
+INSERT INTO `collectors` (`collector_id`, `collector_name`, `enabled`, `disable_alerts`, `active_host`, `last_run`, `interval_seconds`, `timeout_min`) VALUES
+(1, 'default', 1, 0, '0.0.0.0', '0000-00-00 00:00:00', 0, 10);
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `dashboards`
 --
 
@@ -105,7 +129,8 @@ CREATE TABLE `devices` (
   `device_id` int(11) NOT NULL,
   `ip` varchar(15) NOT NULL,
   `name` varchar(255) NOT NULL,
-  `community` varchar(255) NOT NULL DEFAULT 'getstats'
+  `community` varchar(255) NOT NULL DEFAULT 'getstats',
+  `collector_id` int(11) NOT NULL DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
@@ -160,6 +185,12 @@ ALTER TABLE `alerts_tmp`
 --
 ALTER TABLE `alert_types`
   ADD PRIMARY KEY (`alert_type_id`);
+
+--
+-- Indexes for table `collectors`
+--
+ALTER TABLE `collectors`
+  ADD PRIMARY KEY (`collector_id`);
 
 --
 -- Indexes for table `dashboards`
@@ -219,6 +250,12 @@ ALTER TABLE `alert_types`
   MODIFY `alert_type_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
+-- AUTO_INCREMENT for table `collectors`
+--
+ALTER TABLE `collectors`
+  MODIFY `collector_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
 -- AUTO_INCREMENT for table `dashboards`
 --
 ALTER TABLE `dashboards`
@@ -234,7 +271,7 @@ ALTER TABLE `devices`
 -- AUTO_INCREMENT for table `ports`
 --
 ALTER TABLE `ports`
-  MODIFY `port_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `port_id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `thresholds`
