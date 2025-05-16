@@ -204,8 +204,8 @@ sub collect{
    }
 }
 sub oper_check{
-   my $port_id=shift;
    my $device_id=shift;
+   my $port_id=shift;
    my $admin_val=shift;
    my $oper_val=shift;
    my $prev_admin=shift;
