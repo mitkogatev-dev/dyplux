@@ -118,6 +118,10 @@ sub show_alerts{
     # return Dumper(Service::get_alerts($input->{port_id}));
     return Strings::alerts(Service::get_alerts($input->{port_id}));
 }
+sub delete_alerts{
+    Service::trunc_alerts();
+    return "Flushed alerts table.";
+}
 sub show_dashboards{
     my $result=Strings::dashboard_form();
     $result.=Strings::dashboard_list(Service::get_dashboards());

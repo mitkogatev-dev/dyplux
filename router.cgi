@@ -98,6 +98,9 @@ elsif($input{alerts}){
     # $html="TODO!!";
     $html=Dispatch::show_alerts();
 }
+elsif($input{flush_alerts}){
+    $html=Dispatch::delete_alerts();
+}
 elsif($input{dashboards}){
     $html=Dispatch::show_dashboards();
 }

@@ -269,6 +269,11 @@ sub dashboard_edit{
 sub alerts{
     my $result;
     my $alerts=shift;
+    my $result.=qq(
+        <form method="post">
+        <input type="submit" name="flush_alerts" value="delete ALL alerts" />
+        </form>
+    );
     $result.=qq(<table><tr><th>port</th><th>alert</th><th>created at</th><th>disabled at</th></tr>);
     foreach my $alert (@ {$alerts}){
         # my $port=Service::get_port_data($alert->{port_id})->[0];

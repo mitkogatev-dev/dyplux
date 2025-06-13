@@ -195,6 +195,13 @@ sub get_alerts{
     }
     return $alerts; 
 }
+sub trunc_alerts{
+    my $dbh=init_db();
+    my $sth=$dbh->prepare(Query::flush_alerts_tbl());
+    $sth->execute();
+    $dbh->disconnect;
+    return 1;
+}
 
 sub rem_ports{
     my ($selected)=shift;

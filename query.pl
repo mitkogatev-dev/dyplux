@@ -102,6 +102,10 @@ sub get_port_alerts{
 
     return $str;
 }
+sub flush_alerts_tbl{
+    my $str="TRUNCATE TABLE `alerts` ;";
+    return $str;
+}
 sub port_data{
     my $port_id=shift || "";
     my $where="WHERE 1";
